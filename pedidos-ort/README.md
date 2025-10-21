@@ -4,5 +4,5 @@ Aplicación web para gestionar pedidos de comidas con roles (admin, vendedor, cl
 
 Integrantes del Grupo: - Ambasch Ailin
                        - Lizzi Parisi Nahuel Matias
-                       - Nuñez Juarez Alejandra Noemi
+                       - Nuñez Alejandra 
                        - Soroco Yael Micaela
