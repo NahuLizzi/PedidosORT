@@ -95,6 +95,7 @@ function markReady(id) {
 
 /** Crear un pedido nuevo desde la vista Cliente */
 function createOrder(items /* [{productId, qty}] */) {
+if (!items || items.length === 0) return null
   const order = {
     id: state.nextId++,
     items: items.map(it => ({ productId: it.productId, qty: it.qty ?? 1 })),
@@ -112,6 +113,9 @@ const enPrepDet     = computed(() => byStatus('PREPARACION').value.map(withDetai
 const listosDet     = computed(() => byStatus('LISTO').value.map(withDetails))
 
 export function useOrdersStore() {
+  function findOrderComputed(id) {
+  return computed(() => withDetails(findOrder(id)))
+}
   return {
     state,
     // crudos
@@ -128,5 +132,6 @@ export function useOrdersStore() {
     createOrder,
     // util
     withDetails,
+    findOrderComputed,
   }
 }
