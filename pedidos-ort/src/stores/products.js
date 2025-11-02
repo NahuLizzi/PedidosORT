@@ -8,7 +8,7 @@ const state = reactive({
     { id: 'P001', name: 'Papas fritas', price: 2000, img: '/img/papas.png', category: 'Comidas' },
     { id: 'N001', name: 'Nuggets de pollo', price: 2500, img: '/img/nuggets.png', category: 'Comidas' },
     { id: 'PZ01', name: 'Pizza muzarella', price: 5200, img: '/img/pizza.png', category: 'Comidas' },
-    { id: 'H002', name: 'Pancho', price: 2300, img: '/img/pancho.png', category: 'Comidas' },
+    { id: 'H003', name: 'Pancho', price: 2300, img: '/img/pancho.png', category: 'Comidas' },
 
     // Bebidas
     { id: 'B001', name: 'Agua', price: 1200, img: '/img/agua.png', category: 'Bebidas' },

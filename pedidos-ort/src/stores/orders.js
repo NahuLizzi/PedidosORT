@@ -9,26 +9,8 @@ function load() {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return JSON.parse(raw)
   } catch {}
-  // Semilla de ejemplo usando IDs del catálogo
-  return [
-    {
-      id: 1001,
-      items: [
-        { productId: 'H001', qty: 1 }, // Hamburguesa clásica
-        { productId: 'B003', qty: 1 }, // Gaseosa
-      ],
-      createdAt: Date.now() - 1000 * 60 * 5,
-      status: 'PENDIENTE'
-    },
-    {
-      id: 1002,
-      items: [
-        { productId: 'PZ01', qty: 1 }  // Pizza muzarella
-      ],
-      createdAt: Date.now() - 1000 * 60 * 3,
-      status: 'PENDIENTE'
-    }
-  ]
+  
+  return [  ]
 }
 
 const state = reactive({

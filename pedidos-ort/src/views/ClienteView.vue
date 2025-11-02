@@ -36,7 +36,9 @@ import { useOrdersStore } from '../stores/orders'
 const productosStore = useProductsStore()
 const ordersStore = useOrdersStore()
 
-const productos = productosStore.lista
+
+const productos = productosStore.all;
+//const productos = productosStore.all
 const carrito = ref([])
 
 const pedidoConfirmado = ref(false)
@@ -44,14 +46,41 @@ const numeroPedido = ref(null)
 const estadoPedido = ref('Pendiente')
 
 const agregarAlCarrito = (producto) => {
-  carrito.value.push(producto)
+  const existente = carrito.value.find((p) => p.productId === producto.id);
+  if (existente) existente.qty++;
+  else 
+  carrito.value.push({ 
+      productId: producto.id,
+      name: producto.name,
+      price: producto.price,
+      qty: 1,
+      img: producto.img,
+  });
 }
 
-const confirmarPedido = () => {
-  numeroPedido.value = ordersStore.crearPedido(carrito.value)
+/*const confirmarPedido = () => {
+  numeroPedido.value = ordersStore.createOrder(carrito.value)
   pedidoConfirmado.value = true
   estadoPedido.value = 'Pendiente'
-}
+}*/
+
+const confirmarPedido = () => {
+  if (carrito.value.length === 0) {
+    alert("El carrito está vacío.");
+    return;
+  }
+
+  const items = carrito.value.map(p => ({
+    productId: p.productId || p.id,
+    qty: p.qty || 1
+  }));
+
+  numeroPedido.value = ordersStore.createOrder(items);
+  pedidoConfirmado.value = true;
+  estadoPedido.value = 'Pendiente';
+  carrito.value = [];
+};
+
 </script>
 
 <style scoped>

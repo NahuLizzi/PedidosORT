@@ -1,41 +1,52 @@
 <script setup>
-import { RouterLink, RouterView, useRouter, useRoute } from "vue-router";
-import { ref, computed } from "vue";
+import { RouterView, useRouter, useRoute } from "vue-router";
+import { computed } from "vue";
 
-const link = ref("/");
 const router = useRouter();
 const route = useRoute();
 
-// Función para cerrar sesión
+//  Cerrar sesión
 function logout() {
   localStorage.removeItem("isAuth");
+  localStorage.removeItem("user");
   router.push("/login");
 }
 
-// Saber si hay sesión activa
+//  Sesión activa
 const isLoggedIn = computed(() => localStorage.getItem("isAuth") === "1");
 
-// Saber si estamos en el login (para no mostrar el botón ahí)
+// Ocultar header en login
 const isLoginPage = computed(() => route.path === "/login");
+
+// Rol actual
+const userRole = computed(() => {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  return user.role || "sin rol";
+});
+
+// Ir siempre al Home global
+function goHome() {
+  router.push("/");
+}
 </script>
 
 <template>
-  <header class="header">
-    <!-- Link a Home -->
-    <RouterLink :to="link" class="home-link">🏠 Home</RouterLink>
+  <!-- Header visible solo fuera del login -->
+  <header class="header" v-if="!isLoginPage">
+    <!-- Botón que lleva al Home global -->
+    <button @click="goHome" class="home-link">🏠 Home</button>
 
-    <!-- Botón de cerrar sesión -->
-    <button
-      v-if="isLoggedIn && !isLoginPage"
-      @click="logout"
-      class="logout-btn"
-    >
+ 
+
+    <!-- Cerrar sesión -->
+    <button v-if="isLoggedIn" @click="logout" class="logout-btn">
       Cerrar sesión
     </button>
   </header>
 
+  <!-- Contenido principal -->
   <main>
-    <RouterView />
+    <RouterView :key="route.fullPath" />
   </main>
 </template>
 
@@ -57,15 +68,28 @@ const isLoginPage = computed(() => route.path === "/login");
 }
 
 .home-link {
+  background: none;
+  border: none;
   color: white;
-  text-decoration: none;
   font-weight: bold;
   font-size: 1.1rem;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: opacity 0.2s;
 }
 
-/* 🌿 Botón con estilo moderno */
+.home-link:hover {
+  opacity: 0.85;
+}
+
+.role {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-right: 20px;
+}
+
 .logout-btn {
-  background-color: #6366f1; /* violeta suave */
+  background-color: #6366f1;
   color: white;
   border: none;
   border-radius: 8px;
@@ -78,12 +102,12 @@ const isLoginPage = computed(() => route.path === "/login");
 }
 
 .logout-btn:hover {
-  background-color: #4338ca; /* tono más oscuro al pasar el mouse */
+  background-color: #4338ca;
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 main {
-  padding-top: 70px; /* espacio para que no se oculte el contenido */
+  padding-top: 70px;
 }
 </style>
