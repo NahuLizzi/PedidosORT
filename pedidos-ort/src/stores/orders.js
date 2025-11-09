@@ -1,0 +1,102 @@
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import { useProductsStore } from './products'
+
+const API_URL = 'https://690fb63445e65ab24ac49beb.mockapi.io/orders'
+
+export const useOrdersStore = defineStore('orders', {
+  state: () => ({
+    orders: [],
+    loading: false,
+    error: null
+  }),
+
+  getters: {
+    pendientes: (state) => state.orders.filter(o => o.status === 'PENDIENTE'),
+    enPreparacion: (state) => state.orders.filter(o => o.status === 'PREPARACION'),
+    listos: (state) => state.orders.filter(o => o.status === 'LISTO'),
+
+    pendientesDet() {
+      return this.pendientes.map(this.withDetails)
+    },
+    enPrepDet() {
+      return this.enPreparacion.map(this.withDetails)
+    },
+    listosDet() {
+      return this.listos.map(this.withDetails)
+    }, 
+    myOrders: (state) => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  return state.orders.filter(o => o.userName === user.name)
+}
+
+  },
+
+  actions: {
+async fetchOrders() {
+  try {
+    const res = await axios.get(API_URL)
+    this.orders = res.data.map(o => ({
+      ...o,
+      items: typeof o.items === 'string' ? JSON.parse(o.items) : o.items
+    }))
+  } catch (err) {
+    this.error = err.message
+  }
+}
+,
+
+    async createOrder(items, comment = '') {
+      if (!items || items.length === 0) return null
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
+      const newOrder = {
+        createdAt: Date.now(),
+        status: 'PENDIENTE',
+        items,
+        userName: user.name || 'Invitado',
+        comment
+      }
+
+      try {
+        const res = await axios.post(API_URL, newOrder)
+        this.orders.push(res.data)
+        return res.data.id
+      } catch (err) {
+        this.error = err.message
+        console.error('Error creando pedido:', err)
+      }
+    },
+
+    async markInPreparation(id) {
+      const order = this.orders.find(o => o.id === id)
+      if (!order || order.status !== 'PENDIENTE') return
+      order.status = 'PREPARACION'
+      await axios.put(`${API_URL}/${id}`, order)
+    },
+
+    async markReady(id) {
+      const order = this.orders.find(o => o.id === id)
+      if (!order || order.status !== 'PREPARACION') return
+      order.status = 'LISTO'
+      await axios.put(`${API_URL}/${id}`, order)
+    },
+
+    withDetails(order) {
+      const { byId } = useProductsStore()
+      const items = order.items.map(it => {
+        const p = byId(it.productId)
+        const price = p?.price ?? 0
+        return {
+          ...it,
+          name: p?.name ?? it.productId,
+          price,
+          img: p?.img ?? null,
+          lineTotal: price * (it.qty ?? 1)
+        }
+      })
+      const total = items.reduce((acc, it) => acc + it.lineTotal, 0)
+      return { ...order, items, total }
+    }
+  }
+})
+
