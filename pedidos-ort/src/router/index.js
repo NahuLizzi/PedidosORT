@@ -4,7 +4,7 @@ import Login from '../components/Login.vue'
 import EmpleadoView from '../views/EmpleadoView.vue'
 import ClienteView from '../views/ClienteView.vue'
 import GerenteView from '../views/GerenteView.vue'
-import HistorialView from '../views/HistorialView.vue' 
+import HistorialView from '../views/HistorialView.vue'
 
 const routes = [
   { path: '/login', component: Login },
@@ -29,7 +29,7 @@ const routes = [
     meta: { requiresAuth: true, roles: ['gerente'] },
   },
   {
-    path: '/historial',             
+    path: '/historial',
     component: HistorialView,
     meta: { requiresAuth: true, roles: ['cliente', 'gerente'] },
   },
@@ -51,4 +51,3 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
-
