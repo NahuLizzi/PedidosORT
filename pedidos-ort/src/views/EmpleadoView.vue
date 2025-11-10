@@ -11,6 +11,7 @@
     </header>
 
     <div class="cols">
+      <!-- Pendientes -->
       <div class="col">
         <h2>Pendientes</h2>
         <p v-if="pendientesDet.length === 0" class="empty">Sin pedidos</p>
@@ -22,6 +23,7 @@
         />
       </div>
 
+      <!-- En preparación -->
       <div class="col">
         <h2>En preparación</h2>
         <p v-if="enPrepDet.length === 0" class="empty">Sin pedidos</p>
@@ -33,6 +35,7 @@
         />
       </div>
 
+      <!-- Listos -->
       <div class="col">
         <h2>Listos</h2>
         <p v-if="listosDet.length === 0" class="empty">Sin pedidos</p>
@@ -47,16 +50,19 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import PedidoCard from '../components/PedidoCard.vue'
 import { useOrdersStore } from '../stores/orders'
+import { storeToRefs } from 'pinia'
 
-const {
-  pendientesDet,
-  enPrepDet,
-  listosDet,
-  markInPreparation,
-  markReady
-} = useOrdersStore()
+const ordersStore = useOrdersStore()
+const { pendientesDet, enPrepDet, listosDet } = storeToRefs(ordersStore)
+const { markInPreparation, markReady, fetchOrders } = ordersStore
+
+// cargar pedidos desde MockAPI al entrar
+onMounted(() => {
+  fetchOrders()
+})
 </script>
 
 <style scoped>

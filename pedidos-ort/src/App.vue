@@ -1,50 +1,44 @@
 <script setup>
-import { RouterView, useRouter, useRoute } from "vue-router";
-import { computed } from "vue";
+import { RouterView, useRouter, useRoute } from "vue-router"
+import { computed } from "vue"
 
-const router = useRouter();
-const route = useRoute();
+const router = useRouter()
+const route = useRoute()
 
-//  Cerrar sesión
+// Cerrar sesión
 function logout() {
-  localStorage.removeItem("isAuth");
-  localStorage.removeItem("user");
-  router.push("/login");
+  localStorage.removeItem("isAuth")
+  localStorage.removeItem("user")
+  router.push("/login")
 }
 
-//  Sesión activa
-const isLoggedIn = computed(() => localStorage.getItem("isAuth") === "1");
+// Sesión activa
+const isLoggedIn = computed(() => localStorage.getItem("isAuth") === "1")
 
-// Ocultar header en login
-const isLoginPage = computed(() => route.path === "/login");
-
-// Rol actual
-const userRole = computed(() => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  return user.role || "sin rol";
-});
+// Ocultar header y botón volver en login
+const isLoginPage = computed(() => route.path === "/login")
 
 // Ir siempre al Home global
 function goHome() {
-  router.push("/");
+  router.push("/")
 }
 </script>
 
 <template>
-  <!-- Header visible solo fuera del login -->
+  <!-- 🔹 Header principal (oculto en login) -->
   <header class="header" v-if="!isLoginPage">
-    <!-- Botón que lleva al Home global -->
     <button @click="goHome" class="home-link">🏠 Home</button>
-
- 
-
-    <!-- Cerrar sesión -->
     <button v-if="isLoggedIn" @click="logout" class="logout-btn">
       Cerrar sesión
     </button>
   </header>
 
-  <!-- Contenido principal -->
+  <!-- 🔹 Botón de volver global -->
+  <div v-if="!isLoginPage" class="volver-container">
+    <button @click="router.back()" class="btn-volver">⬅️ Volver</button>
+  </div>
+
+  <!-- 🔹 Contenido principal -->
   <main>
     <RouterView :key="route.fullPath" />
   </main>
@@ -82,12 +76,6 @@ function goHome() {
   opacity: 0.85;
 }
 
-.role {
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-right: 20px;
-}
-
 .logout-btn {
   background-color: #6366f1;
   color: white;
@@ -108,6 +96,31 @@ function goHome() {
 }
 
 main {
-  padding-top: 70px;
+  padding-top: 90px; /* deja espacio para el header y botón volver */
+}
+
+/* 🔹 Estilos del botón volver */
+.volver-container {
+  margin-top: 60px;
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 20px;
+}
+
+.btn-volver {
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-volver:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
 }
 </style>
