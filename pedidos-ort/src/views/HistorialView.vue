@@ -48,7 +48,7 @@ onMounted(() => {
 })
 
 function abrirDetalle(pedido) {
-  pedidoSeleccionado.value = pedido
+  pedidoSeleccionado.value = ordersStore.withDetails(pedido)
 }
 
 function formatDate(timestamp) {

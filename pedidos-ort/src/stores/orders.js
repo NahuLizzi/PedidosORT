@@ -36,36 +36,65 @@ export const useOrdersStore = defineStore('orders', {
 async fetchOrders() {
   try {
     const res = await axios.get(API_URL)
-    this.orders = res.data.map(o => ({
-      ...o,
-      items: typeof o.items === 'string' ? JSON.parse(o.items) : o.items
-    }))
+
+    // Normalizamos los pedidos de MockAPI
+    const apiOrders = res.data.map(o => {
+      let itemsParsed = []
+      try {
+        if (typeof o.items === 'string') itemsParsed = JSON.parse(o.items)
+        else if (Array.isArray(o.items)) itemsParsed = o.items
+      } catch {}
+      return { ...o, items: Array.isArray(itemsParsed) ? itemsParsed : [] }
+    })
+
+    // Leemos los guardados en localStorage (con los productos reales)
+    const localOrders = JSON.parse(localStorage.getItem('localOrders') || '[]')
+
+    // Unificamos evitando duplicados por ID
+    const all = [
+      ...localOrders,
+      ...apiOrders.filter(a => !localOrders.some(l => l.id === a.id))
+    ]
+
+    this.orders = all
   } catch (err) {
     this.error = err.message
-  }
-}
-,
+    console.error('Error cargando pedidos:', err)
+  }
+},
 
     async createOrder(items, comment = '') {
-      if (!items || items.length === 0) return null
-      const user = JSON.parse(localStorage.getItem('user') || '{}')
-      const newOrder = {
-        createdAt: Date.now(),
-        status: 'PENDIENTE',
-        items,
-        userName: user.name || 'Invitado',
-        comment
-      }
+  if (!items || items.length === 0) return null
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
 
-      try {
-        const res = await axios.post(API_URL, newOrder)
-        this.orders.push(res.data)
-        return res.data.id
-      } catch (err) {
-        this.error = err.message
-        console.error('Error creando pedido:', err)
-      }
-    },
+  const newOrder = {
+    id: crypto.randomUUID(),
+    createdAt: Date.now(),
+    status: 'PENDIENTE',
+    items, // array con los productos reales
+    userName: user.name || 'Invitado',
+    comment
+  }
+
+  try {
+    // MockAPI recibe sólo el resumen
+    await axios.post(API_URL, {
+      ...newOrder,
+      items: JSON.stringify(items) // compatibilidad con MockAPI
+    })
+
+    // Guardamos el pedido completo localmente
+    const localOrders = JSON.parse(localStorage.getItem('localOrders') || '[]')
+    localOrders.push(newOrder)
+    localStorage.setItem('localOrders', JSON.stringify(localOrders))
+
+    this.orders.push(newOrder)
+    return newOrder.id
+  } catch (err) {
+    this.error = err.message
+    console.error('Error creando pedido:', err)
+  }
+},
 
     async markInPreparation(id) {
       const order = this.orders.find(o => o.id === id)

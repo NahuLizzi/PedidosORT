@@ -71,11 +71,30 @@ const notaPedido = ref('')
 const mensaje = ref('')
 const tipoMensaje = ref('exito')
 
+// 🟢 Nuevo listener: manejar tanto agregar como actualizar
 window.addEventListener('agregar-producto', e => {
   const producto = e.detail
   const existente = carrito.value.find(p => p.id === producto.id)
   if (existente) existente.qty++
   else carrito.value.push({ ...producto, qty: 1 })
+})
+
+// 🟢 Nuevo listener: manejar cambios de cantidad (+/-)
+window.addEventListener('actualizar-producto', e => {
+  const { id, qty, name, price } = e.detail
+  const existente = carrito.value.find(p => p.id === id)
+
+  if (qty > 0) {
+    if (existente) {
+      existente.qty = qty
+    } else {
+      carrito.value.push({ id, name, price, qty })
+    }
+  } else {
+    // si llega qty=0, eliminar del carrito
+    const idx = carrito.value.findIndex(p => p.id === id)
+    if (idx !== -1) carrito.value.splice(idx, 1)
+  }
 })
 
 const total = computed(() =>
@@ -103,7 +122,7 @@ async function confirmarPedido() {
   } catch {
     mensaje.value = 'Error al enviar el pedido'
     tipoMensaje.value = 'error'
-  }
+  }
 }
 </script>
 
