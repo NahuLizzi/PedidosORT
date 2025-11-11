@@ -25,4 +25,5 @@ package-lock.json
 *.sln
 *.sw?
 
-../node_modules
+node_modules
+package-lock.json
