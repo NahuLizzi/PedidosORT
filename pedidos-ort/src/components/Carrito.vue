@@ -1,43 +1,67 @@
 <template>
-  <div class="carrito">
-    <h2>Tu carrito</h2>
+  <div class="carrito container my-4 p-4 rounded-4 shadow">
+    <h2 class="titulo text-center mb-4">🛒 Tu carrito</h2>
 
-    <div v-if="carrito.length === 0 && !pedidoEnviado">
+    <div v-if="carrito.length === 0 && !pedidoEnviado" class="text-center text-muted">
       No hay productos aún.
     </div>
 
-    <ul v-if="carrito.length > 0">
-      <li v-for="(item, i) in carrito" :key="i" class="item">
-        <span>{{ item.name }} x{{ item.qty }} — ${{ item.price * item.qty }}</span>
-        <button class="btn-eliminar" @click="eliminarItem(i)">🗑️</button>
+    <ul v-if="carrito.length > 0" class="list-group mb-3">
+      <li
+        v-for="(item, i) in carrito"
+        :key="i"
+        class="list-group-item d-flex justify-content-between align-items-center"
+      >
+        <span class="fw-semibold">
+          {{ item.name }} x{{ item.qty }} — ${{ item.price * item.qty }}
+        </span>
+        <button
+          class="btn btn-sm btn-outline-danger"
+          @click="eliminarItem(i)"
+        >
+          🗑️
+        </button>
       </li>
     </ul>
 
-    <p v-if="carrito.length > 0" class="total">
+    <p v-if="carrito.length > 0" class="text-end fw-bold fs-5 text-dark">
       Total: ${{ total }}
     </p>
 
-    <!-- 🔹 Comentario visible -->
-    <div v-if="notaPedido" class="nota">
-      🗒️ <em>{{ notaPedido }}</em>
-      <button class="editar-nota" @click="mostrarNota = true">Editar nota</button>
+    <!-- notaPedido -->
+    <div
+      v-if="notaPedido"
+      class="alert alert-warning d-flex justify-content-between align-items-center"
+    >
+      <div>🗒️ <em>{{ notaPedido }}</em></div>
+      <button class="btn btn-sm btn-outline-dark" @click="mostrarNota = true">
+        Editar nota
+      </button>
     </div>
 
-    <div v-if="carrito.length > 0" class="acciones">
-      <button @click="mostrarNota = true" class="btn-nota" v-if="!notaPedido">
-        Agregar nota
-      </button>
-      <button @click="confirmarPedido" class="btn-confirmar">
+    <div v-if="carrito.length > 0" class="d-flex justify-content-between mt-3">
+      <button
+  @click="abrirModalNota"
+  class="btn btn-outline-warning"
+  v-if="!notaPedido"
+>
+  Agregar nota
+</button>
+
+      <button @click="confirmarPedido" class="btn btn-warning text-dark fw-bold">
         Confirmar Pedido
       </button>
     </div>
 
-    <div v-if="pedidoEnviado" class="pedido-enviado">
+    <div
+      v-if="pedidoEnviado"
+      class="alert alert-success text-center mt-4 rounded-4"
+    >
       <h3>Pedido enviado</h3>
-      <p>Tu pedido está en preparación por el restaurante.</p>
+      <p>Tu pedido está en preparación por el restaurante 🍔</p>
     </div>
 
-    <!-- Modales -->
+    <!--modales -->
     <ModalNotaPedido
       v-if="mostrarNota"
       @save="guardarNota"
@@ -49,10 +73,12 @@
       :tipo="tipoMensaje"
     />
 
-    <!-- 🔹 Botón para ver historial -->
-    <router-link to="/historial" class="btn-historial">
-      📜 Ver historial de pedidos
-    </router-link>
+    <!-- boton para ver historial -->
+    <div class="text-center mt-4">
+      <router-link to="/historial" class="btn btn-outline-secondary">
+        📜 Ver historial de pedidos
+      </router-link>
+    </div>
   </div>
 </template>
 
@@ -71,7 +97,7 @@ const notaPedido = ref('')
 const mensaje = ref('')
 const tipoMensaje = ref('exito')
 
-// 🟢 Nuevo listener: manejar tanto agregar como actualizar
+// agregar y actualizar
 window.addEventListener('agregar-producto', e => {
   const producto = e.detail
   const existente = carrito.value.find(p => p.id === producto.id)
@@ -79,7 +105,7 @@ window.addEventListener('agregar-producto', e => {
   else carrito.value.push({ ...producto, qty: 1 })
 })
 
-// 🟢 Nuevo listener: manejar cambios de cantidad (+/-)
+// manejar cambios de cantidad (+/-)
 window.addEventListener('actualizar-producto', e => {
   const { id, qty, name, price } = e.detail
   const existente = carrito.value.find(p => p.id === id)
@@ -91,7 +117,6 @@ window.addEventListener('actualizar-producto', e => {
       carrito.value.push({ id, name, price, qty })
     }
   } else {
-    // si llega qty=0, eliminar del carrito
     const idx = carrito.value.findIndex(p => p.id === id)
     if (idx !== -1) carrito.value.splice(idx, 1)
   }
@@ -104,6 +129,12 @@ const total = computed(() =>
 function eliminarItem(i) {
   carrito.value.splice(i, 1)
 }
+
+function abrirModalNota() {
+  console.log('mostrando modal') // <- para verificar que el click funciona
+  mostrarNota.value = true
+}
+
 
 function guardarNota(texto) {
   notaPedido.value = texto
@@ -122,53 +153,46 @@ async function confirmarPedido() {
   } catch {
     mensaje.value = 'Error al enviar el pedido'
     tipoMensaje.value = 'error'
-  }
+  }
 }
 </script>
 
 <style scoped>
-.nota {
-  background: #f3f4f6;
-  border-left: 4px solid #4f46e5;
-  border-radius: 6px;
-  padding: 8px;
-  margin: 10px 0;
-  font-size: 0.9rem;
-  color: #374151;
+.carrito {
+  background-color: #fffef7;
+  border: 2px solid #ffe082;
 }
 
-.editar-nota {
-  background: none;
+.titulo {
+  color: #ffb300;
+  text-shadow: 1px 1px #fff;
+}
+
+.btn-warning {
+  background-color: #ffc107 !important;
   border: none;
-  color: #4f46e5;
-  cursor: pointer;
-  font-size: 0.8rem;
-  margin-left: 6px;
-  text-decoration: underline;
 }
 
-.editar-nota:hover {
-  color: #4338ca;
+.btn-warning:hover {
+  background-color: #ffb300 !important;
 }
 
-/* 🔹 Botón Ver Historial */
-.btn-historial {
-  display: inline-block;
-  margin-top: 1.5rem;
-  background: #eef2ff;
-  color: #4f46e5;
-  border: 1px solid #c7d2fe;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 500;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.btn-outline-warning {
+  border-color: #ffb300;
+  color: #ffb300;
 }
 
-.btn-historial:hover {
-  background: #e0e7ff;
-  color: #4338ca;
+.btn-outline-warning:hover {
+  background-color: #ffb300;
+  color: #fff;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #f0f0f0;
+}
+
+.list-group-item {
+  background-color: #fffef9;
+  border: 1px solid #ffe082;
 }
 </style>
-

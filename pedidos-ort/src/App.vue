@@ -5,50 +5,58 @@ import { computed } from "vue"
 const router = useRouter()
 const route = useRoute()
 
-// Cerrar sesión
+// cerrar sesion
 function logout() {
   localStorage.removeItem("isAuth")
   localStorage.removeItem("user")
   router.push("/login")
 }
 
-// Sesión activa
+// sesion activa
 const isLoggedIn = computed(() => localStorage.getItem("isAuth") === "1")
 
-// Ocultar header y botón volver en login
+// ocultar header y boton volver en login
 const isLoginPage = computed(() => route.path === "/login")
 
-// Ir siempre al Home global
+// volver al home
 function goHome() {
   router.push("/")
 }
 </script>
 
 <template>
-  <!-- 🔹 Header principal (oculto en login) -->
+  <!-- header principal (oculto en login) -->
   <header class="header" v-if="!isLoginPage">
-    <button @click="goHome" class="home-link">🏠 Home</button>
-    <button v-if="isLoggedIn" @click="logout" class="logout-btn">
-      Cerrar sesión
-    </button>
+    <div class="left-section">
+      <button @click="goHome" class="home-btn">🏠 Inicio</button>
+    </div>
+    <div class="center-section">
+      <h1 class="title">Mi Aplicación</h1>
+    </div>
+    <div class="right-section">
+      <button v-if="isLoggedIn" @click="logout" class="logout-btn">
+        Cerrar sesión
+      </button>
+    </div>
   </header>
 
-  <!-- 🔹 Botón de volver global -->
+  <!-- boton de volver global -->
   <div v-if="!isLoginPage" class="volver-container">
     <button @click="router.back()" class="btn-volver">⬅️ Volver</button>
   </div>
 
-  <!-- 🔹 Contenido principal -->
-  <main>
+  <!-- contenido principal -->
+  <main class="main-content">
     <RouterView :key="route.fullPath" />
   </main>
 </template>
 
 <style scoped>
+/* ======== HEADER ======== */
 .header {
-  background-color: #4f46e5;
+  background: linear-gradient(90deg, #4f46e5, #6366f1);
   color: white;
-  padding: 12px 20px;
+  padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -56,52 +64,67 @@ function goHome() {
   top: 0;
   left: 0;
   right: 0;
-  height: 55px;
+  height: 60px;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
-.home-link {
-  background: none;
+.left-section,
+.center-section,
+.right-section {
+  display: flex;
+  align-items: center;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* ======== BOTONES ======== */
+.home-btn {
+  background: white;
   border: none;
-  color: white;
-  font-weight: bold;
-  font-size: 1.1rem;
+  color: #4f46e5;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 6px 14px;
   cursor: pointer;
-  text-decoration: underline;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
 }
 
-.home-link:hover {
-  opacity: 0.85;
+.home-btn:hover {
+  background: #eef2ff;
+  transform: translateY(-1px);
 }
 
 .logout-btn {
-  background-color: #6366f1;
+  background-color: transparent;
   color: white;
-  border: none;
+  border: 1px solid white;
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 6px 14px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.95rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.25s ease;
 }
 
 .logout-btn:hover {
-  background-color: #4338ca;
+  background-color: white;
+  color: #4f46e5;
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
-main {
-  padding-top: 90px; /* deja espacio para el header y botón volver */
+/* ======== CONTENIDO ======== */
+.main-content {
+  padding-top: 100px; /* espacio para header y boton volver */
+  padding-bottom: 40px;
 }
 
-/* 🔹 Estilos del botón volver */
+/* ======== BOTON VOLVER ======== */
 .volver-container {
-  margin-top: 60px;
+  margin-top: 65px;
   display: flex;
   justify-content: flex-start;
   padding: 0 20px;

@@ -17,7 +17,7 @@ const props = defineProps({
 
 const visible = ref(true)
 onMounted(() => {
-  setTimeout(() => visible.value = false, props.duracion)
+  setTimeout(() => (visible.value = false), props.duracion)
 })
 </script>
 
@@ -28,17 +28,25 @@ onMounted(() => {
   left: 50%;
   transform: translateX(-50%);
   color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 12px 22px;
+  border-radius: 10px;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
 }
-.exito { background: #16a34a; }
-.error { background: #dc2626; }
-.fade-enter-active, .fade-leave-active {
+.exito {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+.error {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style>

@@ -14,18 +14,16 @@ function login() {
 
   const accounts = [
     { email: 'alejandra@gmail.com', password: 'pnt22025', role: 'cliente',  name: 'Alejandra' },
-    { email: 'ailin@gmail.com', password: 'pnt22025',     role: 'cliente',   name: 'Ailin'     },
-    { email: 'micaela@gmail.com', password: 'pnt22025',     role: 'empleado',  name: 'Micaela'    },
-    { email: 'nahuel@gmail.com', password: 'pnt22025',     role: 'gerente',   name: 'Nahuel'      },
+    { email: 'ailin@gmail.com',     password: 'pnt22025', role: 'cliente',  name: 'Ailin'     },
+    { email: 'micaela@gmail.com',   password: 'pnt22025', role: 'empleado', name: 'Micaela'   },
+    { email: 'nahuel@gmail.com',    password: 'pnt22025', role: 'gerente',  name: 'Nahuel'    },
   ]
 
   const e = email.value.trim()
   const p = password.value
-
   const found = accounts.find(u => u.email === e && u.password === p)
 
   if (found) {
-   
     localStorage.setItem('isAuth', '1')
     localStorage.setItem('user', JSON.stringify({
       email: found.email,
@@ -33,14 +31,20 @@ function login() {
       name:  found.name,
     }))
 
- 
-    const redirect = String(route.query.redirect || '/')
-    router.push(redirect)
-  } else {
-    error.value = 'Email o contraseña incorrectos'
-  }
+    let redirect = '/'
+
+    // redireccion a su vista segun el rol
+      if (found.role === 'cliente') redirect = '/cliente'
+  else if (found.role === 'empleado') redirect = '/empleado'
+  else if (found.role === 'gerente') redirect = '/gerente'
+
+  router.push(redirect)
+} else {
+  error.value = 'Email o contraseña incorrectos'
+}
 }
 </script>
+
 
 <template>
   <div class="login-container">
@@ -68,7 +72,7 @@ function login() {
     <p class="hint">
       Usuario de prueba: <b>alejandra@gmail.com</b> / Contraseña: <b>pnt22025</b>
     </p>
-        <p class="hint">
+    <p class="hint">
       Usuario de prueba: <b>ailin@gmail.com</b> / Contraseña: <b>pnt22025</b>
     </p>
     <p class="hint">
@@ -88,49 +92,57 @@ function login() {
   gap: 12px;
   margin-top: 80px;
 
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 24px 20px;
+  background: #fffbe6; /* fondo amarillo claro */
+  border: 2px solid #ffbe0b;
+  border-radius: 16px;
+  padding: 32px 24px;
   width: min(420px, 92vw);
   margin-inline: auto;
-  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+  box-shadow: 0 8px 20px rgba(0,0,0,.08);
+}
+
+h1 {
+  color: #d62828; /* rojo suave */
+  font-weight: 700;
+  font-size: 2rem;
 }
 
 input {
   padding: 10px;
   border-radius: 8px;
-  border: 1px solid #cbd5e1; /* slate-300 */
+  border: 1px solid #cbd5e1;
   width: 260px;
   transition: border-color .15s, box-shadow .15s;
 }
 
 input:focus {
   outline: none;
-  border-color: #4f46e5;          /* indigo-600 */
-  box-shadow: 0 0 0 3px rgba(79,70,229,.15);
+  border-color: #ffbe0b;
+  box-shadow: 0 0 0 3px rgba(255,190,11,.25);
 }
 
 button {
-  background: #4f46e5;
-  color: #fff;
+  background: #ffbe0b;
+  color: #2c2c2c;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px 16px;
   cursor: pointer;
   font-weight: 600;
   width: 260px;
-  transition: filter .15s, transform .02s;
+  transition: all .15s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-button:hover { filter: brightness(.95); }
-button:active { transform: translateY(1px); }
-button:disabled { opacity: .6; cursor: not-allowed; }
+button:hover {
+  background-color: #faa307;
+  transform: translateY(-2px);
+}
 
 .error {
-  color: #b91c1c;                  /* red-700 */
-  background: #fee2e2;            /* red-100 */
-  border: 1px solid #fecaca;      /* red-200 */
+  color: #b91c1c;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
   padding: 8px 10px;
   border-radius: 8px;
   width: 260px;
@@ -139,11 +151,11 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 
 .hint {
   font-size: .85rem;
-  color: #64748b;                  /* slate-500 */
+  color: #555;
 }
 
 @media (max-width: 480px) {
-  .login-container { margin-top: 48px; padding: 16px; }
+  .login-container { margin-top: 48px; padding: 20px; }
   input, button, .error { width: 92vw; max-width: 360px; }
 }
 </style>

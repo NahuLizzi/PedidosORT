@@ -1,35 +1,54 @@
-<!-- src/components/PedidoCard.vue -->
 <template>
-  <article class="pedido">
-    <header class="pedido-header">
-      <h3>Pedido #{{ order.id }}</h3>
-      <small>{{ estadoLabel(order.status) }}</small>
+  <article class="pedido card shadow-sm mb-3 border-warning rounded-4">
+    <header
+      class="pedido-header card-header d-flex justify-content-between align-items-center bg-warning-subtle"
+    >
+      <h5 class="fw-bold text-dark mb-0">Pedido #{{ order.id }}</h5>
+      <small class="text-muted">{{ estadoLabel(order.status) }}</small>
     </header>
 
-    <ul class="pedido-items">
-      <li v-for="item in order.items" :key="item.productId" class="pedido-item">
-        <img :src="item.img" alt="" class="img" />
-        <div class="info">
-          <strong>{{ item.name }}</strong>
-          <span>x{{ item.qty }}</span>
+    <ul class="list-group list-group-flush">
+      <li
+        v-for="item in order.items"
+        :key="item.productId"
+        class="list-group-item d-flex justify-content-between align-items-center"
+      >
+        <div class="d-flex align-items-center gap-3">
+          <img :src="item.img" alt="" class="img rounded-3 border border-warning" />
+          <div class="text-start">
+            <strong>{{ item.name }}</strong>
+            <div class="text-muted">x{{ item.qty }}</div>
+          </div>
         </div>
-        <span class="price">$ {{ item.lineTotal }}</span>
+        <span class="fw-semibold text-dark">$ {{ item.lineTotal }}</span>
       </li>
     </ul>
 
-          <!-- comentario del cliente -->
-      <p v-if="order.comment" class="comentario">
-        🗒️ <em>{{ order.comment }}</em>
-      </p>
+    <p
+      v-if="order.comment"
+      class="comentario alert alert-warning m-3 p-2 small d-flex align-items-center"
+    >
+      🗒️ <em class="ms-2">{{ order.comment }}</em>
+    </p>
 
-    <footer class="pedido-footer">
-      <p class="total">Total: ${{ order.total }}</p>
-      <div class="actions">
-        <button v-if="order.status === 'PENDIENTE'" @click="$emit('prep', order.id)">
-          Marcar en preparación
+    <footer
+      class="pedido-footer card-footer d-flex justify-content-between align-items-center"
+    >
+      <p class="fw-bold text-dark mb-0">Total: ${{ order.total }}</p>
+      <div class="d-flex gap-2">
+        <button
+          v-if="order.status === 'PENDIENTE'"
+          @click="$emit('prep', order.id)"
+          class="btn btn-outline-warning btn-sm"
+        >
+          en preparacion
         </button>
-        <button v-if="order.status === 'PREPARACION'" @click="$emit('ready', order.id)">
-          Marcar listo
+        <button
+          v-if="order.status === 'PREPARACION'"
+          @click="$emit('ready', order.id)"
+          class="btn btn-warning text-dark btn-sm fw-bold"
+        >
+          marcar listo
         </button>
       </div>
     </footer>
@@ -50,39 +69,9 @@ const estadoLabel = (estado) => {
 </script>
 
 <style scoped>
-.pedido {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  text-align: center;
-}
-.pedido-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 4px;
-}
 .img {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   object-fit: cover;
-  border-radius: 8px;
-  margin: 8px auto;
-}
-button {
-  background-color: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 6px 10px;
-  cursor: pointer;
-}
-button:hover {
-  background-color: #4338ca;
 }
 </style>

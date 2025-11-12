@@ -4,12 +4,10 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-//  Leer el usuario actual
 const user = computed(() => JSON.parse(localStorage.getItem("user") || "{}"));
 const role = computed(() => user.value.role || "sin-rol");
 const name = computed(() => user.value.name || "Usuario");
 
-//  Acciones según rol
 function Client() {
   router.push("/cliente");
 }
@@ -27,17 +25,14 @@ function Manager() {
     <p>Tu rol actual es: <b>{{ role }}</b></p>
 
     <div class="menu">
-      <!-- Rol cliente -->
       <button v-if="role === 'cliente' || role === 'gerente'" @click="Client">
         Zona de Cliente
       </button>
 
-      <!-- Rol empleado -->
       <button v-if="role === 'empleado' || role === 'gerente'" @click="Employee">
         Zona de Empleado
       </button>
 
-      <!-- Rol gerente -->
       <button v-if="role === 'gerente'" @click="Manager">
         Zona de Gerente
       </button>
@@ -49,7 +44,14 @@ function Manager() {
 .home {
   text-align: center;
   margin-top: 100px;
-  font-family: system-ui, sans-serif;
+  font-family: 'Poppins', sans-serif;
+  color: #2c2c2c;
+}
+
+h1 {
+  color: #d62828; /* rojo suave */
+  font-weight: 700;
+  font-size: 2.2rem;
 }
 
 .menu {
@@ -61,20 +63,25 @@ function Manager() {
 }
 
 button {
-  background-color: #4f46e5;
-  color: white;
+  background-color: #ffbe0b; /* amarillo mostaza */
+  color: #2c2c2c;
   border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
+  border-radius: 10px;
+  padding: 12px 20px;
   cursor: pointer;
   font-weight: 600;
   font-size: 1rem;
   width: 240px;
-  transition: background 0.2s, transform 0.1s;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 button:hover {
-  background-color: #4338ca;
-  transform: translateY(-1px);
+  background-color: #faa307;
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
 }
 </style>

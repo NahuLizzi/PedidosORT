@@ -1,24 +1,26 @@
 <template>
-  <div class="overlay" @click.self="$emit('close')">
-    <div class="modal">
-      <h2>Agregar nota al pedido</h2>
-      <textarea v-model="nota" placeholder="Ej: sin cebolla, extra queso..." />
-      <div class="actions">
-        <button @click="guardar">Guardar</button>
-        <button class="cancel" @click="$emit('close')">Cancelar</button>
+  <teleport to="body">
+    <div class="overlay" @click.self="$emit('close')">
+      <div class="modal">
+        <h2>📝 Agregar nota al pedido</h2>
+        <textarea v-model="nota" placeholder="Ej: sin cebolla, extra queso..." />
+        <div class="actions">
+          <button class="guardar" @click="guardarNota">Guardar</button>
+          <button class="cancelar" @click="$emit('close')">Cancelar</button>
+        </div>
       </div>
     </div>
-  </div>
+  </teleport>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 
+const emit = defineEmits(['guardar', 'close'])
 const nota = ref('')
-const emit = defineEmits(['close', 'save'])
 
-function guardar() {
-  emit('save', nota.value)
+function guardarNota() {
+  emit('guardar', nota.value)
   emit('close')
 }
 </script>
@@ -27,44 +29,53 @@ function guardar() {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 9999;
 }
+
 .modal {
   background: white;
-  padding: 1.5rem;
-  border-radius: 10px;
-  width: 380px;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
 }
+
 textarea {
   width: 100%;
-  height: 100px;
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  height: 120px;
   resize: none;
-}
-.actions {
   margin-top: 1rem;
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
+  padding: 0.75rem;
+  font-size: 1rem;
 }
-button {
-  background: #4f46e5;
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.guardar {
+  background-color: #4caf50;
   color: white;
   border: none;
+  padding: 0.6rem 1.2rem;
   border-radius: 6px;
-  padding: 8px 12px;
   cursor: pointer;
 }
-button.cancel {
-  background: #6b7280;
-}
-button:hover {
-  opacity: 0.9;
+
+.cancelar {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
 }
 </style>

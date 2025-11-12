@@ -1,29 +1,25 @@
-<!-- <template>
-  <section class="vista">
-    <h2> Panel del Gerente</h2>
-    <p>Control y administración general del sistema.</p>
-  </section>
-</template>
-
-<style scoped>
-.vista {
-  text-align: center;
-  margin-top: 80px;
-}
-</style> -->
-
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import VueApexCharts from 'vue3-apexcharts'
 
-/* 
-  1) Mock de pedidos
- */
+// 1) Estado base y saludo
+const user = ref(JSON.parse(localStorage.getItem('user') || '{}'))
+const greeting = ref('')
+
+// Generar saludo según la hora
+const updateGreeting = () => {
+  const hour = new Date().getHours()
+  if (hour < 12) greeting.value = '¡Buenos días'
+  else if (hour < 19) greeting.value = '¡Buenas tardes'
+  else greeting.value = '¡Buenas noches'
+}
+onMounted(updateGreeting)
+
+// 2) Mock de pedidos (esto luego se reemplazara por datos reales)
 const orders = ref([])
 
 onMounted(() => {
-  // id, date (ISO), items [{ productId, productName, qty, price }]
   orders.value = [
     { id: 1, date: '2025-11-01', items: [
       { productId: 10, productName:'Hamburguesa', qty:2, price:3500 },
@@ -45,12 +41,9 @@ onMounted(() => {
       { productId: 12, productName:'Nuggets',      qty:2, price:3000 },
     ]},
   ]
-}) /// Tengo que traer las órdenes del componente ordenes
+})
 
-/* 
-  2) Computeds / métricas
-    */
-// 2.1 Pedidos por día (labels + series)
+/* --- Computeds / metricas --- */
 const ordersByDay = computed(() => {
   const map = new Map()
   for (const o of orders.value) {
@@ -62,7 +55,6 @@ const ordersByDay = computed(() => {
   return { labels, series }
 })
 
-// 2.2 Top productos por cantidad
 const topProducts = computed(() => {
   const qtyMap = {}
   for (const o of orders.value) {
@@ -79,13 +71,11 @@ const topProducts = computed(() => {
   }
 })
 
-// 2.3 Total de ventas acumuladas
 const totalSales = computed(() =>
   orders.value.reduce((acc, o) =>
     acc + o.items.reduce((s, it) => s + it.qty * it.price, 0), 0)
 )
 
-// 2.4 Tabla simple de resumen
 const summaryTable = computed(() =>
   orders.value.map(o => {
     const lines = o.items.reduce((s, it) => s + it.qty, 0)
@@ -99,13 +89,10 @@ const summaryTable = computed(() =>
   }).sort((a,b) => a.id - b.id)
 )
 
-// util formateo moneda
 const currency = (n) =>
   new Intl.NumberFormat('es-AR', { style:'currency', currency:'ARS', maximumFractionDigits:0 }).format(n)
 
-/* 
-  3) Opciones de gráficos
-*/
+/* --- Configuración de gráficos --- */
 const optsOrdersByDay = computed(() => ({
   chart: { toolbar: { show: false } },
   xaxis: { categories: ordersByDay.value.labels },
@@ -130,7 +117,12 @@ const seriesTopProducts = computed(() => [
 
 <template>
   <section class="page">
-    <h1 class="title">Panel del Gerente</h1>
+    <div class="header">
+      <div>
+        <h1>{{ greeting }}, {{ user.name || 'Gerente' }} 👋</h1>
+        <p class="sub">Bienvenido al panel de control. Aquí podés ver la actividad del restaurante.</p>
+      </div>
+    </div>
 
     <!-- KPIs -->
     <div class="kpis">
@@ -198,7 +190,9 @@ export default {
 
 <style scoped>
 .page { padding: 24px; color:#e5e7eb; max-width: 1200px; margin: 0 auto; }
-.title { text-align:center; font-size:28px; margin: 0 0 16px; }
+.header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; }
+.header h1 { font-size: 26px; margin:0; }
+.sub { color:#9aa3b2; margin-top:6px; }
 
 .kpis { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; margin-bottom:16px; }
 .kpi { background:#171a1f; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:8px; }
