@@ -9,7 +9,7 @@
     <ul v-if="carrito.length > 0" class="list-group mb-3">
       <li
         v-for="(item, i) in carrito"
-        :key="i"
+        :key="item.productId"
         class="list-group-item d-flex justify-content-between align-items-center"
       >
         <span class="fw-semibold">
@@ -41,12 +41,12 @@
 
     <div v-if="carrito.length > 0" class="d-flex justify-content-between mt-3">
       <button
-  @click="abrirModalNota"
-  class="btn btn-outline-warning"
-  v-if="!notaPedido"
->
-  Agregar nota
-</button>
+        @click="abrirModalNota"
+        class="btn btn-outline-warning"
+        v-if="!notaPedido"
+      >
+        Agregar nota
+      </button>
 
       <button @click="confirmarPedido" class="btn btn-warning text-dark fw-bold">
         Confirmar Pedido
@@ -61,7 +61,7 @@
       <p>Tu pedido está en preparación por el restaurante 🍔</p>
     </div>
 
-    <!--modales -->
+    <!-- modales -->
     <ModalNotaPedido
       v-if="mostrarNota"
       @save="guardarNota"
@@ -97,52 +97,81 @@ const notaPedido = ref('')
 const mensaje = ref('')
 const tipoMensaje = ref('exito')
 
-// agregar y actualizar
+/* ---------------------------------------
+   EVENTO: Agregar producto al carrito
+--------------------------------------- */
 window.addEventListener('agregar-producto', e => {
   const producto = e.detail
-  const existente = carrito.value.find(p => p.id === producto.id)
-  if (existente) existente.qty++
-  else carrito.value.push({ ...producto, qty: 1 })
+  // producto.id es el ID REAL del producto de Mockachino
+  const existente = carrito.value.find(p => p.productId === producto.id)
+
+  if (existente) {
+    existente.qty++
+  } else {
+    carrito.value.push({
+      productId: producto.id,
+      name: producto.name,
+      price: producto.price,
+      qty: 1
+    })
+  }
 })
 
-// manejar cambios de cantidad (+/-)
+/* ---------------------------------------
+   EVENTO: Actualizar cantidad de producto
+--------------------------------------- */
 window.addEventListener('actualizar-producto', e => {
   const { id, qty, name, price } = e.detail
-  const existente = carrito.value.find(p => p.id === id)
+  const existente = carrito.value.find(p => p.productId === id)
 
   if (qty > 0) {
     if (existente) {
       existente.qty = qty
     } else {
-      carrito.value.push({ id, name, price, qty })
+      carrito.value.push({ productId: id, name, price, qty })
     }
   } else {
-    const idx = carrito.value.findIndex(p => p.id === id)
+    const idx = carrito.value.findIndex(p => p.productId === id)
     if (idx !== -1) carrito.value.splice(idx, 1)
   }
 })
 
+/* ---------------------------------------
+   TOTAL DEL CARRITO
+--------------------------------------- */
 const total = computed(() =>
   carrito.value.reduce((acc, p) => acc + p.price * p.qty, 0)
 )
 
+/* ---------------------------------------
+   Eliminar producto
+--------------------------------------- */
 function eliminarItem(i) {
   carrito.value.splice(i, 1)
 }
 
+/* ---------------------------------------
+   Nota de pedido
+--------------------------------------- */
 function abrirModalNota() {
-  console.log('mostrando modal') // <- para verificar que el click funciona
   mostrarNota.value = true
 }
-
 
 function guardarNota(texto) {
   notaPedido.value = texto
 }
 
+/* ---------------------------------------
+   Confirmar pedido → MockAPI
+--------------------------------------- */
 async function confirmarPedido() {
   if (carrito.value.length === 0) return
-  const items = carrito.value.map(p => ({ productId: p.id, qty: p.qty }))
+
+  const items = carrito.value.map(p => ({
+    productId: p.productId,
+    qty: p.qty
+  }))
+
   try {
     await ordersStore.createOrder(items, notaPedido.value)
     pedidoEnviado.value = true
@@ -196,3 +225,4 @@ async function confirmarPedido() {
   border: 1px solid #ffe082;
 }
 </style>
+

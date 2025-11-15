@@ -24,108 +24,131 @@ export const useOrdersStore = defineStore('orders', {
     },
     listosDet() {
       return this.listos.map(this.withDetails)
-    }, 
-    myOrders: (state) => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
-  return state.orders.filter(o => o.userName === user.name)
-}
+    },
 
+    myOrders(state) {
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
+      return state.orders.filter(o => o.userId === user.id)
+    }
   },
 
   actions: {
-async fetchOrders() {
-  try {
-    const res = await axios.get(API_URL)
+    async fetchOrders() {
+      this.loading = true
+      this.error = null
 
-    // Normalizamos los pedidos de MockAPI
-    const apiOrders = res.data.map(o => {
-      let itemsParsed = []
       try {
-        if (typeof o.items === 'string') itemsParsed = JSON.parse(o.items)
-        else if (Array.isArray(o.items)) itemsParsed = o.items
-      } catch {}
-      return { ...o, items: Array.isArray(itemsParsed) ? itemsParsed : [] }
-    })
+        const res = await axios.get(API_URL)
 
-    // Leemos los guardados en localStorage (con los productos reales)
-    const localOrders = JSON.parse(localStorage.getItem('localOrders') || '[]')
+        this.orders = res.data.map(o => {
+          let parsed = []
 
-    // Unificamos evitando duplicados por ID
-    const all = [
-      ...localOrders,
-      ...apiOrders.filter(a => !localOrders.some(l => l.id === a.id))
-    ]
+          try {
+            if (Array.isArray(o.items)) parsed = o.items
+            else if (typeof o.items === 'string') parsed = JSON.parse(o.items)
+          } catch {
+            parsed = []
+          }
 
-    this.orders = all
-  } catch (err) {
-    this.error = err.message
-    console.error('Error cargando pedidos:', err)
-  }
-},
+          return {
+            ...o,
+            items: parsed
+          }
+        })
+      } catch (err) {
+        this.error = err.message
+        console.error('Error cargando pedidos:', err)
+      } finally {
+        this.loading = false
+      }
+    },
 
     async createOrder(items, comment = '') {
-  if (!items || items.length === 0) return null
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
 
-  const newOrder = {
-    id: crypto.randomUUID(),
-    createdAt: Date.now(),
-    status: 'PENDIENTE',
-    items, // array con los productos reales
-    userName: user.name || 'Invitado',
-    comment
-  }
+      const order = {
+        createdAt: Date.now(),
+        status: 'PENDIENTE',
+        userId: user.id,
+        items: JSON.stringify(items),
+        comment
+      }
 
-  try {
-    // MockAPI recibe sólo el resumen
-    await axios.post(API_URL, {
-      ...newOrder,
-      items: JSON.stringify(items) // compatibilidad con MockAPI
-    })
+      try {
+        const res = await axios.post(API_URL, order)
 
-    // Guardamos el pedido completo localmente
-    const localOrders = JSON.parse(localStorage.getItem('localOrders') || '[]')
-    localOrders.push(newOrder)
-    localStorage.setItem('localOrders', JSON.stringify(localOrders))
+        const savedOrder = {
+          ...res.data,
+          items
+        }
 
-    this.orders.push(newOrder)
-    return newOrder.id
-  } catch (err) {
-    this.error = err.message
-    console.error('Error creando pedido:', err)
-  }
-},
+        this.orders.push(savedOrder)
+
+        return savedOrder.id
+      } catch (err) {
+        this.error = err.message
+        console.error('Error creando pedido:', err)
+      }
+    },
 
     async markInPreparation(id) {
       const order = this.orders.find(o => o.id === id)
       if (!order || order.status !== 'PENDIENTE') return
+
       order.status = 'PREPARACION'
-      await axios.put(`${API_URL}/${id}`, order)
+
+      try {
+        await axios.put(`${API_URL}/${id}`, {
+          ...order,
+          items: JSON.stringify(order.items)
+        })
+      } catch (err) {
+        this.error = err.message
+        console.error('Error actualizando pedido:', err)
+      }
     },
 
     async markReady(id) {
       const order = this.orders.find(o => o.id === id)
       if (!order || order.status !== 'PREPARACION') return
+
       order.status = 'LISTO'
-      await axios.put(`${API_URL}/${id}`, order)
+
+      try {
+        await axios.put(`${API_URL}/${id}`, {
+          ...order,
+          items: JSON.stringify(order.items)
+        })
+      } catch (err) {
+        this.error = err.message
+        console.error('Error actualizando pedido:', err)
+      }
     },
 
     withDetails(order) {
-      const { byId } = useProductsStore()
+      const productsStore = useProductsStore()
+
       const items = order.items.map(it => {
-        const p = byId(it.productId)
+        const p = productsStore.byId(it.productId)
+
         const price = p?.price ?? 0
+
         return {
           ...it,
           name: p?.name ?? it.productId,
           price,
           img: p?.img ?? null,
-          lineTotal: price * (it.qty ?? 1)
+          lineTotal: price * it.qty
         }
       })
+
       const total = items.reduce((acc, it) => acc + it.lineTotal, 0)
-      return { ...order, items, total }
+
+      return {
+        ...order,
+        items,
+        total
+      }
     }
   }
 })
-

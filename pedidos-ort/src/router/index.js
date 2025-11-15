@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../components/Home.vue'
 import Login from '../components/Login.vue'
 import EmpleadoView from '../views/EmpleadoView.vue'
 import ClienteView from '../views/ClienteView.vue'
@@ -8,20 +7,34 @@ import HistorialView from '../views/HistorialView.vue'
 
 const routes = [
   { path: '/login', component: Login },
+
   {
     path: '/',
-    component: Home,
-    meta: { requiresAuth: true },
+    redirect: () => {
+      const isAuth = localStorage.getItem('isAuth') === '1'
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+      // 🔹 Si no está logueado → ir al login
+      if (!isAuth) return '/login'
+
+      // 🔹 Si está logueado → ir a su vista por rol
+      if (user.role === 'cliente') return '/cliente'
+      if (user.role === 'empleado') return '/empleado'
+      if (user.role === 'gerente') return '/gerente'
+
+      return '/login'
+    }
+  },
+
+  {
+    path: '/cliente',
+    component: ClienteView,
+    meta: { requiresAuth: true, roles: ['cliente', 'gerente'] },
   },
   {
     path: '/empleado',
     component: EmpleadoView,
     meta: { requiresAuth: true, roles: ['empleado', 'gerente'] },
-  },
-  {
-    path: '/cliente',
-    component: ClienteView,
-    meta: { requiresAuth: true, roles: ['cliente', 'gerente'] },
   },
   {
     path: '/gerente',
@@ -37,16 +50,35 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
+  routes
 })
+
 
 router.beforeEach((to, from, next) => {
   const isAuth = localStorage.getItem('isAuth') === '1'
   const user = JSON.parse(localStorage.getItem('user') || '{}')
   const role = user.role
 
+
   if (to.meta.requiresAuth && !isAuth) return next('/login')
-  if (to.meta.roles && !to.meta.roles.includes(role)) return next('/')
+
+ 
+  if (to.meta.roles && !to.meta.roles.includes(role)) {
+    if (isAuth) {
+      if (role === 'cliente') return next('/cliente')
+      if (role === 'empleado') return next('/empleado')
+      if (role === 'gerente') return next('/gerente')
+    }
+    return next('/login')
+  }
+
+
+  if (to.path === '/login' && isAuth) {
+    if (role === 'cliente') return next('/cliente')
+    if (role === 'empleado') return next('/empleado')
+    if (role === 'gerente') return next('/gerente')
+  }
+
   next()
 })
 

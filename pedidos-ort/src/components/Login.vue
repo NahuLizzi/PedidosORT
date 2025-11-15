@@ -9,42 +9,41 @@ const error = ref('')
 const router = useRouter()
 const route  = useRoute()
 
-function login() {
+async function login() {
   error.value = ''
 
-  const accounts = [
-    { email: 'alejandra@gmail.com', password: 'pnt22025', role: 'cliente',  name: 'Alejandra' },
-    { email: 'ailin@gmail.com',     password: 'pnt22025', role: 'cliente',  name: 'Ailin'     },
-    { email: 'micaela@gmail.com',   password: 'pnt22025', role: 'empleado', name: 'Micaela'   },
-    { email: 'nahuel@gmail.com',    password: 'pnt22025', role: 'gerente',  name: 'Nahuel'    },
-  ]
+  // obtenemos los usuarios desde Mockachino
+  const res = await fetch("https://www.mockachino.com/0528e0d6-a212-49/users")
+  const data = await res.json()
+  const accounts = data.users   // array de usuarios
 
+  // validamos
   const e = email.value.trim()
   const p = password.value
   const found = accounts.find(u => u.email === e && u.password === p)
 
   if (found) {
+    // guardamos datos en localStorage
     localStorage.setItem('isAuth', '1')
     localStorage.setItem('user', JSON.stringify({
+      id:    found.id,
       email: found.email,
       role:  found.role,
       name:  found.name,
     }))
 
+    // redirige según rol
     let redirect = '/'
+    if (found.role === 'cliente')  redirect = '/cliente'
+    else if (found.role === 'empleado') redirect = '/empleado'
+    else if (found.role === 'gerente')  redirect = '/gerente'
 
-    // redireccion a su vista segun el rol
-      if (found.role === 'cliente') redirect = '/cliente'
-  else if (found.role === 'empleado') redirect = '/empleado'
-  else if (found.role === 'gerente') redirect = '/gerente'
-
-  router.push(redirect)
-} else {
-  error.value = 'Email o contraseña incorrectos'
-}
+    router.push(redirect)
+  } else {
+    error.value = 'Email o contraseña incorrectos'
+  }
 }
 </script>
-
 
 <template>
   <div class="login-container">
@@ -92,7 +91,7 @@ function login() {
   gap: 12px;
   margin-top: 80px;
 
-  background: #fffbe6; /* fondo amarillo claro */
+  background: #fffbe6;
   border: 2px solid #ffbe0b;
   border-radius: 16px;
   padding: 32px 24px;
@@ -102,7 +101,7 @@ function login() {
 }
 
 h1 {
-  color: #d62828; /* rojo suave */
+  color: #d62828;
   font-weight: 700;
   font-size: 2rem;
 }

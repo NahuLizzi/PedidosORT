@@ -57,8 +57,10 @@ onMounted(() => {
 })
 
 function abrirDetalle(pedido) {
-  pedidoSeleccionado.value = ordersStore.withDetails(pedido)
+  const copy = JSON.parse(JSON.stringify(pedido)) 
+  pedidoSeleccionado.value = ordersStore.withDetails(copy)
 }
+
 
 function formatDate(timestamp) {
   const d = new Date(timestamp)

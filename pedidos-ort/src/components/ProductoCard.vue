@@ -1,44 +1,45 @@
 <template>
-  <article class="producto card shadow-sm border-warning text-center p-3">
-    <img
-      :src="producto.img"
-      alt=""
-      class="img rounded-3 border border-warning mb-3"
-    />
+  <article class="producto-card">
+    <img :src="producto.img" class="img" />
 
-    <p class="nombre fw-semibold fs-5 text-dark">{{ producto.name }}</p>
-    <p class="precio text-muted fs-6 mb-3">$ {{ producto.price }}</p>
+    <p class="nombre">{{ producto.name }}</p>
+    <p class="precio">$ {{ producto.price }}</p>
 
     <div class="acciones">
-      <!-- Si el producto no está seleccionado -->
       <button
         v-if="cantidadSeleccionada === 0"
         @click="incrementar"
-        class="btn btn-warning text-dark fw-bold w-100"
+        class="btn-agregar"
       >
-        🍔 Agregar al carrito
+        🍔 Agregar
       </button>
 
-      <!-- Si ya hay cantidad -->
-      <div v-else class="contador d-flex justify-content-center align-items-center gap-3">
-        <button @click="decrementar" class="btn btn-outline-warning fw-bold">–</button>
-        <span class="cantidad fs-5 fw-bold">{{ cantidadSeleccionada }}</span>
-        <button @click="incrementar" class="btn btn-outline-warning fw-bold">+</button>
+      <div v-else class="contador">
+        <button @click="decrementar">–</button>
+        <span class="cantidad">{{ cantidadSeleccionada }}</span>
+        <button @click="incrementar">+</button>
       </div>
     </div>
   </article>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue"
 
 const props = defineProps({ producto: Object })
 const cantidadSeleccionada = ref(0)
 
 function notificarCambio() {
-  window.dispatchEvent(new CustomEvent('actualizar-producto', {
-    detail: { ...props.producto, qty: cantidadSeleccionada.value }
-  }))
+  window.dispatchEvent(
+    new CustomEvent("actualizar-producto", {
+      detail: {
+        id: props.producto.id,
+        name: props.producto.name,
+        price: props.producto.price,
+        qty: cantidadSeleccionada.value
+      }
+    })
+  )
 }
 
 function incrementar() {
@@ -55,17 +56,25 @@ function decrementar() {
 </script>
 
 <style scoped>
-.producto {
-  width: 200px;
-  background-color: #fffef8;
+.producto-card {
+  width: 220px;            /* 🟢 CONTROL REAL DEL ANCHO */
+  background: #fffef8;
+  border: 1px solid #ffe082;
   border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
 }
+
 .img {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   object-fit: cover;
+  border-radius: 10px;
 }
-.contador button {
-  min-width: 40px;
+
+.contador {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 </style>

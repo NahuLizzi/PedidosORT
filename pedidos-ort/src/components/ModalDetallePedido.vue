@@ -21,22 +21,34 @@ defineProps({ pedido: Object })
 
 <style scoped>
 .overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  backdrop-filter: blur(2px);
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: rgba(0,0,0,.55) !important;
+  z-index: 99999999 !important;
 }
+
 .modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+
   background: #fff;
   padding: 1.8rem;
   border-radius: 12px;
   width: 400px;
+  z-index: 100000000 !important;
+
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   animation: pop 0.25s ease-out;
 }
+
 @keyframes pop {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
