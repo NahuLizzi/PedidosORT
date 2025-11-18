@@ -3,6 +3,15 @@ import axios from 'axios'
 import { useProductsStore } from './products'
 
 const API_URL = 'https://690fb63445e65ab24ac49beb.mockapi.io/orders'
+// helper: convierte a timestamp válido o devuelve null
+const toTs = (v) => {
+  if (typeof v === 'number' && Number.isFinite(v) && v > 0) return v
+  if (typeof v === 'string') {
+    const t = Date.parse(v)
+    return Number.isFinite(t) ? t : null
+  }
+  return null
+}
 
 export const useOrdersStore = defineStore('orders', {
   state: () => ({
@@ -36,24 +45,47 @@ export const useOrdersStore = defineStore('orders', {
     async fetchOrders() {
       this.loading = true
       this.error = null
+//Se comenta codigo anterior, para corregir en caso de que se rompa Cliente/Empleado
+      // try {
+      //   const res = await axios.get(API_URL)
 
+      //   this.orders = res.data.map(o => {
+      //     let parsed = []
+
+      //     try {
+      //       if (Array.isArray(o.items)) parsed = o.items
+      //       else if (typeof o.items === 'string') parsed = JSON.parse(o.items)
+      //     } catch {
+      //       parsed = []
+      //     }
+
+      //     return {
+      //       ...o,
+      //       items: parsed
+      //     }
+      //   })
       try {
-        const res = await axios.get(API_URL)
-
-        this.orders = res.data.map(o => {
-          let parsed = []
-
+        const { data } = await axios.get(API_URL)
+        this.orders = data.map(o => {
+          // items siempre array
+          let items = []
           try {
-            if (Array.isArray(o.items)) parsed = o.items
-            else if (typeof o.items === 'string') parsed = JSON.parse(o.items)
-          } catch {
-            parsed = []
-          }
+          items = Array.isArray(o.items)
+              ? o.items
+              : typeof o.items === 'string'
+                ? JSON.parse(o.items)
+                : []
+          } catch { items = [] }
 
-          return {
-            ...o,
-            items: parsed
-          }
+          // qty numérica (>=1) y productId normalizado por si viene con otro nombre
+          items = items.map(it => ({
+            ...it,
+            productId: it.productId ?? it.id ?? it.code,
+            qty: Number(it.qty) > 0 ? Number(it.qty) : 1
+          }))
+          // fecha consistente (timestamp ms) para evitar 31/12/1969
+          const createdAt = toTs(o.createdAt) ?? toTs(o.date) ?? Date.now()
+          return { ...o, items, createdAt }
         })
       } catch (err) {
         this.error = err.message
@@ -124,31 +156,50 @@ export const useOrdersStore = defineStore('orders', {
         console.error('Error actualizando pedido:', err)
       }
     },
+//Se comenta codigo anterior, para corregir en caso de que se rompa Cliente/Empleado
+  //   withDetails(order) {
+  //     const productsStore = useProductsStore()
 
-    withDetails(order) {
+  //     const items = order.items.map(it => {
+  //       const p = productsStore.byId(it.productId)
+
+  //       const price = p?.price ?? 0
+
+  //       return {
+  //         ...it,
+  //         name: p?.name ?? it.productId,
+  //         price,
+  //         img: p?.img ?? null,
+  //         lineTotal: price * it.qty
+  //       }
+  //     })
+
+  //     const total = items.reduce((acc, it) => acc + it.lineTotal, 0)
+
+  //     return {
+  //       ...order,
+  //       items,
+  //       total
+  //     }
+  //   }
+    
+      withDetails(order) {
       const productsStore = useProductsStore()
-
-      const items = order.items.map(it => {
-        const p = productsStore.byId(it.productId)
-
-        const price = p?.price ?? 0
-
+      const items = (order.items ?? []).map(it => {
+        const p = productsStore.byId?.(it.productId)
+        const price = Number(p?.price) || Number(it.price) || 0   // fallback si aún no cargó products
+        const qty   = Number(it.qty) > 0 ? Number(it.qty) : 1
         return {
           ...it,
-          name: p?.name ?? it.productId,
+          name: p?.name ?? it.productName ?? it.productId,
           price,
-          img: p?.img ?? null,
-          lineTotal: price * it.qty
+          img:  p?.img ?? null,
+          lineTotal: price * qty
         }
       })
-
       const total = items.reduce((acc, it) => acc + it.lineTotal, 0)
-
-      return {
-        ...order,
-        items,
-        total
+      return { ...order, items, total }
       }
     }
-  }
 })
+

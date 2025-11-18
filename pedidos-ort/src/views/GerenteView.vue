@@ -2,6 +2,13 @@
 import { ref, computed, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import VueApexCharts from 'vue3-apexcharts'
+import { useOrdersStore } from '../stores/orders.js'
+import { useProductsStore } from '../stores/products.js'
+
+//Guardamos las ordenes
+const store = useOrdersStore()
+//Guardamos los productos
+const products = useProductsStore()
 
 // 1) Estado base y saludo
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'))
@@ -17,76 +24,51 @@ const updateGreeting = () => {
 onMounted(updateGreeting)
 
 // 2) Mock de pedidos (esto luego se reemplazara por datos reales)
-const orders = ref([])
+//const orders = ref([])
 
-onMounted(() => {
-  orders.value = [
-    { id: 1, date: '2025-11-01', items: [
-      { productId: 10, productName:'Hamburguesa', qty:2, price:3500 },
-      { productId: 11, productName:'Papas',        qty:1, price:1800 },
-    ]},
-    { id: 2, date: '2025-11-01', items: [
-      { productId: 12, productName:'Nuggets',      qty:1, price:3000 },
-      { productId: 11, productName:'Papas',        qty:2, price:1800 },
-    ]},
-    { id: 3, date: '2025-11-02', items: [
-      { productId: 10, productName:'Hamburguesa',  qty:1, price:3500 },
-      { productId: 13, productName:'Pizza',        qty:1, price:6000 },
-    ]},
-    { id: 4, date: '2025-11-02', items: [
-      { productId: 10, productName:'Hamburguesa',  qty:3, price:3500 },
-    ]},
-    { id: 5, date: '2025-11-03', items: [
-      { productId: 11, productName:'Papas',        qty:3, price:1800 },
-      { productId: 12, productName:'Nuggets',      qty:2, price:3000 },
-    ]},
-  ]
+onMounted(async () => {
+  await Promise.all([
+    products.fetchProducts?.(), 
+    store.fetchOrders()
+  ])
 })
 
-/* --- Computeds / metricas --- */
 const ordersByDay = computed(() => {
   const map = new Map()
-  for (const o of orders.value) {
-    const d = dayjs(o.date).format('YYYY-MM-DD')
+  for (const o of store.orders) {
+    const raw = o.date ?? o.createdAt
+    const d = dayjs(typeof raw === 'number' ? raw : String(raw)).format('YYYY-MM-DD')
     map.set(d, (map.get(d) ?? 0) + 1)
   }
   const labels = Array.from(map.keys()).sort()
   const series = labels.map(d => map.get(d))
   return { labels, series }
 })
+const ordersDet = computed(() => store.orders.map(store.withDetails))
 
 const topProducts = computed(() => {
-  const qtyMap = {}
-  for (const o of orders.value) {
+  const acc = {}
+  for (const o of ordersDet.value) {
     for (const it of o.items) {
-      qtyMap[it.productName] = (qtyMap[it.productName] ?? 0) + it.qty
+      const key = it.name ?? it.productName ?? it.productId
+      acc[key] = (acc[key] ?? 0) + (it.qty ?? 1)
     }
   }
-  const entries = Object.entries(qtyMap)
-    .sort((a,b) => b[1]-a[1])
-    .slice(0, 6)
-  return {
-    labels: entries.map(([name]) => name),
-    series: entries.map(([,qty]) => qty),
-  }
+  const entries = Object.entries(acc).sort((a,b)=> b[1]-a[1]).slice(0,6)
+  return { labels: entries.map(e=>e[0]), series: entries.map(e=>e[1]) }
 })
 
 const totalSales = computed(() =>
-  orders.value.reduce((acc, o) =>
-    acc + o.items.reduce((s, it) => s + it.qty * it.price, 0), 0)
+  ordersDet.value.reduce((sum, o) => sum + (o.total ?? 0), 0)
 )
 
 const summaryTable = computed(() =>
-  orders.value.map(o => {
-    const lines = o.items.reduce((s, it) => s + it.qty, 0)
-    const total = o.items.reduce((s, it) => s + it.qty * it.price, 0)
-    return {
-      id: o.id,
-      date: dayjs(o.date).format('DD/MM/YYYY'),
-      lines,
-      total
-    }
-  }).sort((a,b) => a.id - b.id)
+  ordersDet.value.map(o => ({
+    id: o.id,
+    date: dayjs(o.date ?? o.createdAt).format('DD/MM/YYYY'),
+    lines: o.items.reduce((n,it)=> n + (it.qty ?? 1), 0),
+    total: o.total ?? 0
+  }))
 )
 
 const currency = (n) =>
@@ -104,15 +86,49 @@ const seriesOrdersByDay = computed(() => [
   { name: 'Pedidos', data: ordersByDay.value.series }
 ])
 
+const seriesTopProducts = computed(() => {
+const data = safeArray(topProducts.value?.series);
+return [{ name: 'Cantidad', data }];
+});
+
+// 1) helpers para el array
+const safeArray = (x) => (Array.isArray(x) ? x : []);
+
 const optsTopProducts = computed(() => ({
-  chart: { toolbar: { show: false } },
+  chart: { toolbar: { show: false }, foreColor: '#e5e7eb' },
   plotOptions: { bar: { borderRadius: 6, columnWidth: '45%' } },
-  xaxis: { categories: topProducts.value.labels },
-  dataLabels: { enabled: false },
-}))
-const seriesTopProducts = computed(() => [
-  { name: 'Cantidad', data: topProducts.value.series }
-])
+  xaxis: {
+    categories: Array.isArray(topProducts.value?.labels) ? topProducts.value.labels : [],
+    tickPlacement: 'on',
+    labels: {
+      rotate: -45,
+      maxHeight: 80,
+      hideOverlappingLabels: true,
+      // trim: true,
+      minHeight: 70,
+      maxHeight: 900,
+      offsetY: 8,
+      style: { fontSize: '12px' },
+    },
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+  },
+  yaxis: {
+    labels: { formatter: (v) => Number(v).toFixed(0) },
+  },
+  dataLabels: {
+    enabled: true,
+    offsetY: -6,
+    formatter: (val) => Number(val).toFixed(0),
+    style: { colors: ['#e5e7eb'] },
+  },
+  grid: { strokeDashArray: 4 },
+  tooltip: { theme: 'dark', y: { formatter: (val) => `${Number(val).toFixed(0)} uds` } },
+  noData: { text: 'Sin datos', align: 'center', style: { color: '#e5e7eb' } },
+}));
+
+
+
 </script>
 
 <template>
@@ -128,15 +144,15 @@ const seriesTopProducts = computed(() => [
     <div class="kpis">
       <div class="card kpi">
         <span class="muted">Pedidos totales</span>
-        <strong>{{ orders.length }}</strong>
+        <strong class="kpi-title">{{ store.orders.length }}</strong>
       </div>
       <div class="card kpi">
         <span class="muted">Ventas acumuladas</span>
-        <strong>{{ currency(totalSales) }}</strong>
+        <strong class="kpi-title">{{ currency(totalSales) }}</strong>
       </div>
       <div class="card kpi">
         <span class="muted">Productos distintos</span>
-        <strong>{{ topProducts.labels.length }}</strong>
+        <strong class="kpi-title">{{ topProducts.labels.length }}</strong>
       </div>
     </div>
 
@@ -189,26 +205,31 @@ export default {
 </script>
 
 <style scoped>
+/**/
+*{
+  color: #000 ;
+}
 .page { padding: 24px; color:#e5e7eb; max-width: 1200px; margin: 0 auto; }
-.header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; }
+.header { display:flex; justify-content: flex-start; align-items:center; margin-bottom: 24px; }
 .header h1 { font-size: 26px; margin:0; }
-.sub { color:#9aa3b2; margin-top:6px; }
+.sub { color:#ffffff; margin-top:6px; }
 
 .kpis { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; margin-bottom:16px; }
-.kpi { background:#171a1f; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:8px; }
+.kpi { background:#1f488f; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:8px; }
 .kpi strong { font-size:24px; }
 
 .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px; }
 .card { background:#171a1f; border-radius:12px; padding:16px; }
-.card-title { color:#9aa3b2; font-weight:600; margin-bottom:10px; }
+.card-title { color:#ffffff; font-weight:600; margin-bottom:10px; }
+.kpi-title {color: #ffffff;}
 
 .table { width:100%; border-collapse:separate; border-spacing:0 8px; }
-.table th { text-align:left; color:#9aa3b2; font-weight:600; }
-.table td, .table th { padding:10px 12px; background:#171a1f; }
-.table tr { box-shadow:0 1px 6px rgba(0,0,0,.08); border-radius:8px; }
+.table th { text-align:left; color:#ffffff; font-weight:600; }
+.table td, .table th { color: #ffffff; padding:10px 12px; background:#171a1f; }
+.table tr { box-shadow:0 1px 6px rgba(175, 163, 163, 0.08); border-radius:8px; }
 .right { text-align:right; }
 
-.muted { color:#9aa3b2; }
+.muted { color:#fdfdfd; }
 
 @media (max-width: 900px){
   .kpis{ grid-template-columns: 1fr; }
