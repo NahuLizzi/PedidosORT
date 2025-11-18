@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import dayjs from 'dayjs'
 import VueApexCharts from 'vue3-apexcharts'
 import { useOrdersStore } from '../stores/orders.js'
@@ -9,10 +9,21 @@ import { useProductsStore } from '../stores/products.js'
 const store = useOrdersStore()
 //Guardamos los productos
 const products = useProductsStore()
+//Ref para Spinner para cuando los gráficos esten listos.
+const ready = ref(false)     
 
 // 1) Estado base y saludo
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'))
 const greeting = ref('')
+
+//Paleta de colores
+const COLORS = {
+  accent: '#ffbe0b', // barras/línea (ya lo usás)
+  text:   '#6B5300', // texto principal (más oscuro)
+  muted:  '#7A6400', // texto secundario/labels
+  border: '#E8D79C', // grilla/bordes suaves
+}
+
 
 // Generar saludo según la hora
 const updateGreeting = () => {
@@ -31,6 +42,8 @@ onMounted(async () => {
     products.fetchProducts?.(), 
     store.fetchOrders()
   ])
+  await nextTick()
+  ready.value= true
 })
 
 const ordersByDay = computed(() => {
@@ -76,12 +89,13 @@ const currency = (n) =>
 
 /* --- Configuración de gráficos --- */
 const optsOrdersByDay = computed(() => ({
-  chart: { toolbar: { show: false } },
-  colors: ['#ffbe0b'],     
+  chart: { toolbar: { show: false }, foreColor: COLORS.muted },
+  colors: [COLORS.accent],     
   xaxis: { categories: ordersByDay.value.labels },
+  yaxis: { labels: { style: { colors: COLORS.muted } }},
   dataLabels: { enabled: false },
   stroke: { width: 3 },
-  grid: { strokeDashArray: 4 },
+  grid: { strokeDashArray: 4, borderColor: COLORS.border },
 }))
 const seriesOrdersByDay = computed(() => [
   { name: 'Pedidos', data: ordersByDay.value.series }
@@ -96,8 +110,8 @@ return [{ name: 'Cantidad', data }];
 const safeArray = (x) => (Array.isArray(x) ? x : []);
 
 const optsTopProducts = computed(() => ({
-  chart: { toolbar: { show: false }, foreColor: '#000'},
-  colors: ['#ffbe0b'], 
+  chart: { toolbar: { show: false }, foreColor: COLORS.muted},
+  colors: [COLORS.accent], 
   plotOptions: { bar: { borderRadius: 6, columnWidth: '45%' } },
   xaxis: {
     categories: Array.isArray(topProducts.value?.labels) ? topProducts.value.labels : [],
@@ -110,7 +124,7 @@ const optsTopProducts = computed(() => ({
       minHeight: 70,
       maxHeight: 900,
       offsetY: 8,
-      style: { fontSize: '12px' },
+      style: { fontSize: '12px',  colors: COLORS.muted },
     },
     axisBorder: { show: false },
     axisTicks: { show: false },
@@ -122,9 +136,9 @@ const optsTopProducts = computed(() => ({
     enabled: true,
     offsetY: -6,
     formatter: (val) => Number(val).toFixed(0),
-    style: { colors: ['#000'] },
+    style: { colors: [COLORS.text] },
   },
-  grid: { strokeDashArray: 4 },
+  grid: { strokeDashArray: 4, borderColor: COLORS.border },
   tooltip: { theme: 'dark', y: { formatter: (val) => `${Number(val).toFixed(0)} uds` } },
   noData: { text: 'Sin datos', align: 'center', style: { color: '#e5e7eb' } },
 }));
@@ -134,7 +148,7 @@ const optsTopProducts = computed(() => ({
 </script>
 
 <template>
-  <section class="page">
+  <section  v-if="ready" class="page">
     <div class="header">
       <div>
         <h1>{{ greeting }}, {{ user.name || 'Gerente' }} 👋</h1>
@@ -198,6 +212,10 @@ const optsTopProducts = computed(() => ({
       </table>
     </div>
   </section>
+  <div v-else class="loading">
+    <div class="spinner"></div>
+    <span>Cargando estadísticas…</span>
+  </div>
 </template>
 
 <script>
@@ -208,31 +226,54 @@ export default {
 
 <style scoped>
 /**/
-*{
-  color: #000 ;
+
+:global(:root){
+  --rc-accent: #ffbe0b;   /* acento (barras / línea / spinner) */
+  --rc-text:   #816501;   /* texto principal */
+  --rc-muted:  #7A6400;   /* texto secundario */
+  --rc-border: #e2cc7a;   /* bordes / grilla suave */
 }
-.page { padding: 24px; color:#e5e7eb; max-width: 1200px; margin: 0 auto; }
+
+.page { padding: 24px; color: var(--rc-text); max-width: 1200px; margin: 0 auto; }
 .header { display:flex; justify-content: center; align-items:center; margin-bottom: 24px; }
 .header h1 { font-size: 26px; margin:0; }
-.sub { color:#000; margin-top:6px; }
+.sub { color: var(--rc-muted); margin-top:6px; }
 
 .kpis { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; margin-bottom:16px; }
-.kpi { background:#1f488f; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:8px; }
-.kpi strong { font-size:24px; }
+.kpi { background:#fff7cc; border:1px solid var(--rc-border); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:8px; }
+.kpi strong, .kpi-title { font-size:24px; color: var(--rc-text); }
 
 .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px; }
-.card { background:#fffbe6; border-radius:12px; padding:16px; }
-.card-title { color:#000; font-weight:600; margin-bottom:10px; }
-.kpi-title {color: #000;}
+.card { background:#fffbe6; border-radius:12px; padding:16px;border:1px solid var(--rc-border) }
+.card-title { color: var(--rc-muted); font-weight:600; margin-bottom:10px; }
 
-.table { width:100%; border-collapse:separate; border-spacing:0 8px; }
-.table th { text-align:left; color:#000; font-weight:600; }
-.table td, .table th { color: #000; padding:10px 12px; background:#ffbe0b28;  }
+
+.table { width:100%; border-collapse:separate; border-spacing:0 8px; color: var(--rc-text); }
+.table th { text-align:left; color:var(--rc-text); font-weight:600; }
+.table td, .table th { color: var(--rc-text); padding:10px 12px; background:#ffbe0b28;  }
 .table tr { box-shadow:0 1px 6px rgba(175, 163, 163, 0.08); border-radius:8px; }
 .t-right { text-align:right; border-bottom-right-radius: 5px; border-top-right-radius: 5px;}
 .t-left { text-align:left; border-bottom-left-radius: 5px; border-top-left-radius: 5px; }
 
-.muted { color:#000; font-weight:bold ; }
+.muted { color:var(--rc-muted); font-weight:bold ; }
+
+.loading{
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* centra horizontal */
+  justify-content: center;  /* centra vertical */
+  gap: 12px;
+  color: #555;
+}
+.spinner{
+  width: 32px; height: 32px;
+  border: 3px solid #ffbe0b33;
+  border-top-color: var(--rc-accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin{to{transform: rotate(360deg)}}
 
 @media (max-width: 900px){
   .kpis{ grid-template-columns: 1fr; }
