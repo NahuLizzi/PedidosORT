@@ -77,6 +77,7 @@ const currency = (n) =>
 /* --- Configuración de gráficos --- */
 const optsOrdersByDay = computed(() => ({
   chart: { toolbar: { show: false } },
+  colors: ['#ffbe0b'],     
   xaxis: { categories: ordersByDay.value.labels },
   dataLabels: { enabled: false },
   stroke: { width: 3 },
@@ -95,7 +96,8 @@ return [{ name: 'Cantidad', data }];
 const safeArray = (x) => (Array.isArray(x) ? x : []);
 
 const optsTopProducts = computed(() => ({
-  chart: { toolbar: { show: false }, foreColor: '#e5e7eb' },
+  chart: { toolbar: { show: false }, foreColor: '#000'},
+  colors: ['#ffbe0b'], 
   plotOptions: { bar: { borderRadius: 6, columnWidth: '45%' } },
   xaxis: {
     categories: Array.isArray(topProducts.value?.labels) ? topProducts.value.labels : [],
@@ -120,7 +122,7 @@ const optsTopProducts = computed(() => ({
     enabled: true,
     offsetY: -6,
     formatter: (val) => Number(val).toFixed(0),
-    style: { colors: ['#e5e7eb'] },
+    style: { colors: ['#000'] },
   },
   grid: { strokeDashArray: 4 },
   tooltip: { theme: 'dark', y: { formatter: (val) => `${Number(val).toFixed(0)} uds` } },
@@ -179,18 +181,18 @@ const optsTopProducts = computed(() => ({
       <table class="table">
         <thead>
           <tr>
-            <th>#</th>
+            <th class="t-left">ID</th>
             <th>Fecha</th>
             <th>Ítems</th>
-            <th class="right">Total</th>
+            <th class="t-right">Total</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="row in summaryTable" :key="row.id">
-            <td>{{ row.id }}</td>
+            <td class="t-left">{{ row.id }}</td>
             <td>{{ row.date }}</td>
             <td>{{ row.lines }}</td>
-            <td class="right">{{ currency(row.total) }}</td>
+            <td class="t-right">{{ currency(row.total) }}</td>
           </tr>
         </tbody>
       </table>
@@ -210,26 +212,27 @@ export default {
   color: #000 ;
 }
 .page { padding: 24px; color:#e5e7eb; max-width: 1200px; margin: 0 auto; }
-.header { display:flex; justify-content: flex-start; align-items:center; margin-bottom: 24px; }
+.header { display:flex; justify-content: center; align-items:center; margin-bottom: 24px; }
 .header h1 { font-size: 26px; margin:0; }
-.sub { color:#ffffff; margin-top:6px; }
+.sub { color:#000; margin-top:6px; }
 
 .kpis { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; margin-bottom:16px; }
 .kpi { background:#1f488f; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:8px; }
 .kpi strong { font-size:24px; }
 
 .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px; }
-.card { background:#171a1f; border-radius:12px; padding:16px; }
-.card-title { color:#ffffff; font-weight:600; margin-bottom:10px; }
-.kpi-title {color: #ffffff;}
+.card { background:#fffbe6; border-radius:12px; padding:16px; }
+.card-title { color:#000; font-weight:600; margin-bottom:10px; }
+.kpi-title {color: #000;}
 
 .table { width:100%; border-collapse:separate; border-spacing:0 8px; }
-.table th { text-align:left; color:#ffffff; font-weight:600; }
-.table td, .table th { color: #ffffff; padding:10px 12px; background:#171a1f; }
+.table th { text-align:left; color:#000; font-weight:600; }
+.table td, .table th { color: #000; padding:10px 12px; background:#ffbe0b28;  }
 .table tr { box-shadow:0 1px 6px rgba(175, 163, 163, 0.08); border-radius:8px; }
-.right { text-align:right; }
+.t-right { text-align:right; border-bottom-right-radius: 5px; border-top-right-radius: 5px;}
+.t-left { text-align:left; border-bottom-left-radius: 5px; border-top-left-radius: 5px; }
 
-.muted { color:#fdfdfd; }
+.muted { color:#000; font-weight:bold ; }
 
 @media (max-width: 900px){
   .kpis{ grid-template-columns: 1fr; }
