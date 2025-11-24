@@ -74,4 +74,19 @@ const estadoLabel = (estado) => {
   height: 70px;
   object-fit: cover;
 }
+
+.list-group-item > .d-flex {
+  min-width: 0;
+  flex: 1;
+}
+
+.list-group-item strong {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.list-group-item span {
+  white-space: nowrap;
+}
 </style>
+

@@ -1,9 +1,9 @@
 <template>
   <teleport to="body">
     <div class="overlay" @click.self="$emit('close')">
-      <div class="modal">
+      <div class="nota-modal">
         <h2>📝 Agregar nota al pedido</h2>
-        <textarea v-model="nota" placeholder="Ej: sin cebolla, extra queso..." />
+        <textarea v-model="nota" placeholder="Ej: sin cebolla, extra queso..."></textarea>
         <div class="actions">
           <button class="guardar" @click="guardarNota">Guardar</button>
           <button class="cancelar" @click="$emit('close')">Cancelar</button>
@@ -33,16 +33,17 @@ function guardarNota() {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  z-index: 99999999 !important;
 }
 
-.modal {
+.nota-modal {
   background: white;
   padding: 2rem;
   border-radius: 12px;
   width: 400px;
   max-width: 90%;
   box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  z-index: 99999999 !important;
 }
 
 textarea {

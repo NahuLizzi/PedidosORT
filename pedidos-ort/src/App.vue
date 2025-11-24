@@ -2,15 +2,18 @@
 import { RouterView, useRouter, useRoute } from "vue-router"
 import { computed, onMounted } from "vue"
 import { useSessionStore } from "./stores/session"
+import { useOrdersStore } from "./stores/orders"
 
 const router = useRouter()
 const route = useRoute()
 
 //Con Pinia
 const session = useSessionStore()
+const orders = useOrdersStore()
 
 onMounted(() => {
   session.restoreSession()
+  orders.fetchOrders()
 })
 
 // cerrar sesion
@@ -47,7 +50,7 @@ function goHome() {
       <button @click="goHome" class="home-btn">🏠 Inicio</button>
     </div>
     <div class="center-section">
-      <h1 class="title">Mi Aplicación</h1>
+      <h1 class="title">PedidosORT</h1>
     </div>
     <div class="right-section">
      <button v-if="!isLoggedIn && !isLoginPage" class="btn btn-primary" @click="$router.push('/login')" > 
@@ -59,10 +62,13 @@ function goHome() {
     </div>
   </header>
 
-  <!-- boton de volver global (oculto en login y home publico) -->
-  <div v-if="!isLoginPage && !isHomePublico" class="volver-container">
-    <button @click="router.back()" class="btn-volver">⬅️ Volver</button>
-  </div>
+<div 
+  v-if="route.path === '/historial' && !isLoginPage && !isHomePublico" 
+  class="volver-container"
+>
+  <button @click="router.back()" class="btn-volver">⬅️ Volver</button>
+</div>
+
 
   <!-- contenido principal -->
   <main class="main-content">

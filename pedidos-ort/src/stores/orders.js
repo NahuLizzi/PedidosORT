@@ -59,6 +59,7 @@ export const useOrdersStore = defineStore('orders', {
      //usamos withDetails para que el historial muestre total y detalles
      return this.orders
         .filter(o => String(o.userId) === userId)
+        .sort((a, b) => b.createdAt - a.createdAt)
         .map(o => this.withDetails(o))
       }
   },

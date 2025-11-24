@@ -168,9 +168,9 @@ header {
   margin-top: 10px;
 }
 
-.listos-grid {
+.listos-grid-empleado {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 12px;
 }
 
