@@ -1,6 +1,7 @@
 import { defineStore } from "pinia"
 import axios from "axios"
 
+//Api de productos destacados(featuresProducts) en Mockapi
 const API_URL = "https://691bd77b3aaeed735c8e7658.mockapi.io/api/featuredProducts"
 
 export const useFeaturedProductsStore = defineStore("featuredProducts", {
