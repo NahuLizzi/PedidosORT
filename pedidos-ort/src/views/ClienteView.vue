@@ -11,7 +11,7 @@
      
       <div class="productos-grid">
         <ProductoCard
-          v-for="prod in productos"
+          v-for="prod in productosConDescuento"
           :key="prod.id"
           :producto="prod"
         />
@@ -31,19 +31,58 @@ import ProductoCard from '../components/ProductoCard.vue'
 import Carrito from '../components/Carrito.vue'
 import { useProductsStore } from '../stores/products'
 import { useOrdersStore } from '../stores/orders'
+import { useFeaturedProductsStore } from '../stores/featuredProducts'
 
 const productosStore = useProductsStore()
 const productos = computed(() => productosStore.all)
 
 const ordersStore = useOrdersStore()
+const featuredStore = useFeaturedProductsStore()
 
 const user = computed(() => JSON.parse(localStorage.getItem('user') || '{}'))
 const name = computed(() => user.value.name || 'Usuario')
 
-onMounted(() => {
+//Productos con descuento(si corresponde)
+const productosConDescuento = computed(() => {
+  const activos = featuredStore.featuredProducts.filter(f => f.isFeatured)
+
+  return productos.value.map(p => {
+    const feat = activos.find(f => String(f.productId) === String(p.id))
+
+    if (!feat) {
+      return {
+        ...p,
+        discount: 0,
+        finalPrice: Number(p.price) || 0,
+        isFeatured: false,
+        label: ""
+      }
+    }
+
+    const price = Number(p.price) || 0
+    const discount = Number(feat.discount) || 0
+    const finalPrice = Math.round(price * (1 - discount / 100))
+
+    return {
+      ...p,
+      discount,
+      finalPrice,
+      isFeatured: true,
+      label: feat.label ?? ""
+    }
+  })
+})
+
+  onMounted(async () => {
+    await productosStore.fetchProducts()       // Productos de Mockachino
+    await featuredStore.fetchFeaturedProducts() //Productos destacados de MockAPI
+    await ordersStore.fetchOrders()
+  })
+
+/*onMounted(() => {
   productosStore.fetchProducts()
   ordersStore.fetchOrders()
-})
+})*/
 </script>
 
 <style scoped>

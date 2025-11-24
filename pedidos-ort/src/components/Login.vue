@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useSessionStore } from '../stores/session'
 
 const email = ref('')
 const password = ref('')
@@ -8,20 +9,47 @@ const error = ref('')
 
 const router = useRouter()
 const route  = useRoute()
+const session = useSessionStore()
 
 async function login() {
   error.value = ''
 
   // obtenemos los usuarios desde Mockachino
-  const res = await fetch("https://www.mockachino.com/0528e0d6-a212-49/users")
-  const data = await res.json()
-  const accounts = data.users   // array de usuarios
+  //const res = await fetch("https://www.mockachino.com/0528e0d6-a212-49/users")
+  
+  // Ahora obtenemos los usuarios desde Mockapi
+  const res = await fetch("https://691bd77b3aaeed735c8e7658.mockapi.io/api/users")
+  const accounts = await res.json()   // array de usuarios
 
   // validamos
   const e = email.value.trim()
   const p = password.value
   const found = accounts.find(u => u.email === e && u.password === p)
 
+
+  if (found) {
+  const userData = {
+    id: found.id,
+    email: found.email,
+    role: found.role,
+    name: found.name
+  }
+
+  // login reactivo
+  session.login(userData)
+
+  // redirige según rol
+  let redirect = '/'
+  if (found.role === 'cliente') redirect = '/cliente'
+  else if (found.role === 'empleado') redirect = '/empleado'
+  else if (found.role === 'gerente') redirect = '/gerente'
+
+  router.push(redirect)
+} else {
+  error.value = 'Email o contraseña incorrectos'
+}
+
+  /*Antes sin Pinia
   if (found) {
     // guardamos datos en localStorage
     localStorage.setItem('isAuth', '1')
@@ -41,7 +69,7 @@ async function login() {
     router.push(redirect)
   } else {
     error.value = 'Email o contraseña incorrectos'
-  }
+  }*/
 }
 </script>
 
@@ -65,6 +93,11 @@ async function login() {
     />
 
     <button @click="login">Entrar</button>
+
+    <p class="register-link"> 
+      ¿No tenés cuenta? 
+      <RouterLink to="/register">Registrate aquí</RouterLink>
+    </p>
 
     <p v-if="error" class="error">{{ error }}</p>
 

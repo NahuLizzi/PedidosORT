@@ -16,11 +16,11 @@
 <script setup>
 import { ref } from 'vue'
 
-const emit = defineEmits(['guardar', 'close'])
+const emit = defineEmits(['save', 'close'])
 const nota = ref('')
 
 function guardarNota() {
-  emit('guardar', nota.value)
+  emit('save', nota.value) 
   emit('close')
 }
 </script>

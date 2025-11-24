@@ -18,7 +18,7 @@ const greeting = ref('')
 
 //Paleta de colores
 const COLORS = {
-  accent: '#ffbe0b', // barras/línea (ya lo usás)
+  accent: '#ffbe0b', 
   text:   '#6B5300', // texto principal (más oscuro)
   muted:  '#7A6400', // texto secundario/labels
   border: '#E8D79C', // grilla/bordes suaves

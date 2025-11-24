@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useProductsStore } from './products'
+import { useSessionStore } from './session'
 
 const API_URL = 'https://690fb63445e65ab24ac49beb.mockapi.io/orders'
 // helper: convierte a timestamp válido o devuelve null
@@ -35,16 +36,38 @@ export const useOrdersStore = defineStore('orders', {
       return this.listos.map(this.withDetails)
     },
 
-    myOrders(state) {
+    /*Antes sin Pinia
+      myOrders(state) {
       const user = JSON.parse(localStorage.getItem('user') || '{}')
       return state.orders.filter(o => o.userId === user.id)
-    }
+    }ale*/
+
+    myOrders() {
+     const session = useSessionStore()
+
+  // Pinia
+     const sessionUserId = session.user?.id
+
+  // fallback a localStorage para no romper nada
+     const lsUserId = JSON.parse(localStorage.getItem('user') || '{}')?.id
+     const userId = sessionUserId ?? lsUserId
+
+     console.log(userId);
+
+     if (!userId) return []
+
+     //usamos withDetails para que el historial muestre total y detalles
+     return this.orders
+        .filter(o => String(o.userId) === userId)
+        .map(o => this.withDetails(o))
+      }
   },
 
   actions: {
     async fetchOrders() {
       this.loading = true
       this.error = null
+
 //Se comenta codigo anterior, para corregir en caso de que se rompa Cliente/Empleado
       // try {
       //   const res = await axios.get(API_URL)
@@ -95,6 +118,7 @@ export const useOrdersStore = defineStore('orders', {
       }
     },
 
+    /* Antes sin Pinia 
     async createOrder(items, comment = '') {
       const user = JSON.parse(localStorage.getItem('user') || '{}')
 
@@ -104,24 +128,45 @@ export const useOrdersStore = defineStore('orders', {
         userId: user.id,
         items: JSON.stringify(items),
         comment
-      }
+      }*/
 
-      try {
-        const res = await axios.post(API_URL, order)
+    async createOrder(items, comment = '') {
+    const session = useSessionStore()
 
-        const savedOrder = {
-          ...res.data,
-          items
-        }
+    const sessionUserId = session.user?.id
+    const lsUserId = JSON.parse(localStorage.getItem('user') || '{}')?.id
+    const userId = sessionUserId ?? lsUserId
 
-        this.orders.push(savedOrder)
+    if (!userId) {
+    this.error = 'No hay usuario logueado'
+    throw new Error('No hay usuario logueado')
+    }
 
-        return savedOrder.id
-      } catch (err) {
-        this.error = err.message
-        console.error('Error creando pedido:', err)
-      }
-    },
+    const order = {
+    createdAt: Date.now(),
+    status: 'PENDIENTE',
+    userId,
+    items: JSON.stringify(items),
+    comment
+    }
+
+    try {
+    const res = await axios.post(API_URL, order)
+
+    const savedOrder = {
+      ...res.data,
+      items
+    }
+
+    this.orders.push(savedOrder)
+
+    return savedOrder.id
+    } catch (err) {
+    this.error = err.message
+    console.error('Error creando pedido:', err)
+    throw err
+    }
+  },
 
     async markInPreparation(id) {
       const order = this.orders.find(o => o.id === id)

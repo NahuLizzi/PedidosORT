@@ -1,22 +1,38 @@
 <script setup>
 import { RouterView, useRouter, useRoute } from "vue-router"
-import { computed } from "vue"
+import { computed, onMounted } from "vue"
+import { useSessionStore } from "./stores/session"
 
 const router = useRouter()
 const route = useRoute()
 
+//Con Pinia
+const session = useSessionStore()
+
+onMounted(() => {
+  session.restoreSession()
+})
+
 // cerrar sesion
 function logout() {
+  session.logout()
+  router.replace("/")
+}
+/*Antes sin Pinia
+  function logout() {
   localStorage.removeItem("isAuth")
   localStorage.removeItem("user")
   router.push("/login")
-}
+}*/
 
 // sesion activa
-const isLoggedIn = computed(() => localStorage.getItem("isAuth") === "1")
+//Sin Pinia
+//const isLoggedIn = computed(() => localStorage.getItem("isAuth") === "1")
+const isLoggedIn = computed(() => session.isAuth)
 
-// ocultar header y boton volver en login
 const isLoginPage = computed(() => route.path === "/login")
+
+const isHomePublico = computed(() => route.path === "/")
 
 // volver al home
 function goHome() {
@@ -25,8 +41,8 @@ function goHome() {
 </script>
 
 <template>
-  <!-- header principal (oculto en login) -->
-  <header class="header" v-if="!isLoginPage">
+  <!-- header principal -->
+  <header class="header">
     <div class="left-section">
       <button @click="goHome" class="home-btn">🏠 Inicio</button>
     </div>
@@ -34,14 +50,17 @@ function goHome() {
       <h1 class="title">Mi Aplicación</h1>
     </div>
     <div class="right-section">
-      <button v-if="isLoggedIn" @click="logout" class="logout-btn">
-        Cerrar sesión
+     <button v-if="!isLoggedIn && !isLoginPage" class="btn btn-primary" @click="$router.push('/login')" > 
+     Iniciar sesión
+      </button>
+      <button v-if="isLoggedIn && !isLoginPage" @click="logout" class="logout-btn">
+      Cerrar sesión
       </button>
     </div>
   </header>
 
-  <!-- boton de volver global -->
-  <div v-if="!isLoginPage" class="volver-container">
+  <!-- boton de volver global (oculto en login y home publico) -->
+  <div v-if="!isLoginPage && !isHomePublico" class="volver-container">
     <button @click="router.back()" class="btn-volver">⬅️ Volver</button>
   </div>
 

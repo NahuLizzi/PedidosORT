@@ -44,16 +44,36 @@
 import { onMounted, ref, computed } from 'vue'
 import { useOrdersStore } from '../stores/orders'
 import ModalDetallePedido from '../components/ModalDetallePedido.vue'
+import { useSessionStore } from '../stores/session'
+import { useProductsStore } from '../stores/products'
+
 
 const ordersStore = useOrdersStore()
+const sessionStore = useSessionStore()
+const productsStore = useProductsStore()
+
 const pedidoSeleccionado = ref(null)
 
-// Saludo personalizado
+/* Antes sin Pinia
+Saludo personalizado
 const user = computed(() => JSON.parse(localStorage.getItem('user') || '{}'))
-const name = computed(() => user.value.name || 'Usuario')
+const name = computed(() => user.value.name || 'Usuario')*/
 
-onMounted(() => {
-  ordersStore.fetchOrders()
+// Saludo con  Pinia
+const name = computed(() => sessionStore.name)
+
+// Antes sin Pinia
+// onMounted(() => {
+    //ordersStore.fetchOrders()
+//  })
+
+onMounted(async () => {
+  // productos
+    if (!productsStore.all.length) {
+    await productsStore.fetchProducts()
+  }
+  // pedidos
+    await ordersStore.fetchOrders()
 })
 
 function abrirDetalle(pedido) {

@@ -4,20 +4,24 @@ import EmpleadoView from '../views/EmpleadoView.vue'
 import ClienteView from '../views/ClienteView.vue'
 import GerenteView from '../views/GerenteView.vue'
 import HistorialView from '../views/HistorialView.vue'
+import RegisterView from '../views/RegisterView.vue'
+import HomePublicoView from '../views/HomePublicoView.vue'
 
 const routes = [
   { path: '/login', component: Login },
+  { path: '/register', component: RegisterView },
+  { path: '/', component: HomePublicoView },
 
-  {
+  /*{Antes, sin Pinia
     path: '/',
     redirect: () => {
       const isAuth = localStorage.getItem('isAuth') === '1'
       const user = JSON.parse(localStorage.getItem('user') || '{}')
 
-      // 🔹 Si no está logueado → ir al login
+      // Si no está logueado → ir al login
       if (!isAuth) return '/login'
 
-      // 🔹 Si está logueado → ir a su vista por rol
+      // Si está logueado → ir a su vista por rol
       if (user.role === 'cliente') return '/cliente'
       if (user.role === 'empleado') return '/empleado'
       if (user.role === 'gerente') return '/gerente'
@@ -25,7 +29,7 @@ const routes = [
       return '/login'
     }
   },
-
+*/
   {
     path: '/cliente',
     component: ClienteView,
@@ -62,7 +66,6 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !isAuth) return next('/login')
 
- 
   if (to.meta.roles && !to.meta.roles.includes(role)) {
     if (isAuth) {
       if (role === 'cliente') return next('/cliente')
@@ -72,8 +75,13 @@ router.beforeEach((to, from, next) => {
     return next('/login')
   }
 
-
   if (to.path === '/login' && isAuth) {
+    if (role === 'cliente') return next('/cliente')
+    if (role === 'empleado') return next('/empleado')
+    if (role === 'gerente') return next('/gerente')
+  }
+//ale
+    if (to.path === '/' && isAuth) {
     if (role === 'cliente') return next('/cliente')
     if (role === 'empleado') return next('/empleado')
     if (role === 'gerente') return next('/gerente')
