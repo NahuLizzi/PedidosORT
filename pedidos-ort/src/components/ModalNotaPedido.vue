@@ -37,6 +37,7 @@ function guardarNota() {
 }
 
 .modal {
+  display: block;
   background: white;
   padding: 2rem;
   border-radius: 12px;

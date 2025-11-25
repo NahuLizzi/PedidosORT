@@ -35,6 +35,7 @@ defineProps({ pedido: Object })
 
 /* Cambie nombre para no tener conflicto con bootstrap */
 .detalle-modal {
+  display: block;
   position: fixed !important;
   top: 50% !important; left: 50% !important;
   transform: translate(-50%, -50%) !important;

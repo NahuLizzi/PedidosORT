@@ -23,6 +23,7 @@ onMounted(() => {
 
 <style scoped>
 .toast {
+  display: block;
   position: fixed;
   bottom: 25px;
   left: 50%;
