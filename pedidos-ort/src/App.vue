@@ -37,18 +37,12 @@ const isLoginPage = computed(() => route.path === "/login")
 
 const isHomePublico = computed(() => route.path === "/")
 
-// volver al home
-function goHome() {
-  router.push("/")
-}
+
 </script>
 
 <template>
   <!-- header principal -->
   <header class="header">
-    <div class="left-section">
-      <button @click="goHome" class="home-btn">🏠 Inicio</button>
-    </div>
     <div class="center-section">
       <h1 class="title">PedidosORT</h1>
     </div>
@@ -108,22 +102,6 @@ function goHome() {
 }
 
 /* ======== BOTONES ======== */
-.home-btn {
-  background: white;
-  border: none;
-  color: #4f46e5;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 6px 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.home-btn:hover {
-  background: #eef2ff;
-  transform: translateY(-1px);
-}
-
 .logout-btn {
   background-color: transparent;
   color: white;
