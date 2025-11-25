@@ -42,7 +42,7 @@ function remove(){ emit('remove') }
 
 <style scoped>
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;z-index:9999}
-.modal{width:min(480px,90vw);background:#fffef5;border:1px solid var(--rc-border);border-radius:12px;padding:16px;box-shadow:0 12px 30px rgba(0,0,0,.15)}
+.modal{display:block; width:min(480px,90vw);background:#fffef5;border:1px solid var(--rc-border);border-radius:12px;padding:16px;box-shadow:0 12px 30px rgba(0,0,0,.15)}
 .muted{color:var(--rc-muted);font-weight:600}
 .lbl{display:block;font-weight:600;color:var(--rc-muted);margin:12px 0 6px}
 .inp{width:120px;padding:8px 10px;border:1px solid var(--rc-border);border-radius:8px;background:#fffdf1;color:var(--rc-text)}
